@@ -3,6 +3,7 @@
 import { useActionState, useRef } from "react";
 
 import { addCollateral, addDocument } from "@/actions/customers";
+import { downscaleImage } from "@/lib/downscale-image";
 import type { FormState } from "@/actions/auth";
 import { FormError, SubmitButton } from "@/components/form-parts";
 import { Field, Input, Select, Textarea } from "@/components/ui/primitives";
@@ -26,6 +27,14 @@ export function DocumentForm({ customerId }: { customerId: string }) {
     <form
       ref={formRef}
       action={async (formData) => {
+        // Resize before the request is built, so a 5 MB phone photo never
+        // reaches the 3 MB cap. Non-images and formats the browser cannot
+        // decode are left alone and rejected server-side if truly too large.
+        const picked = formData.get("file");
+        if (picked instanceof File && picked.size > 0) {
+          const smaller = await downscaleImage(picked);
+          if (smaller) formData.set("file", smaller, smaller.name);
+        }
         await action(formData);
         formRef.current?.reset();
       }}
@@ -50,7 +59,7 @@ export function DocumentForm({ customerId }: { customerId: string }) {
         </Field>
       </div>
 
-      <Field label="Scan or photo" htmlFor="doc-file" error={e.file} hint="JPG, PNG or PDF, up to 3 MB">
+      <Field label="Scan or photo" htmlFor="doc-file" error={e.file} hint="JPG, PNG or PDF. Photos are resized automatically; PDFs must be under 3 MB.">
         <input
           id="doc-file"
           name="file"

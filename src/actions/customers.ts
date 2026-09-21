@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { db } from "@/lib/db";
+import { MAX_UPLOAD_BYTES } from "@/lib/downscale-image";
 import { nextCode } from "@/lib/loan-service";
 import { assertStaff, recordAudit } from "@/lib/session";
 import {
@@ -80,11 +81,13 @@ export async function addDocument(_prev: FormState, formData: FormData): Promise
   let fileName: string | null = null;
 
   if (file instanceof File && file.size > 0) {
-    // 3 MB ceiling. The real constraint is Vercel's 4.5 MB request-body limit,
-    // which multipart overhead and the other form fields eat into; staying
-    // well under it means an over-sized upload gets this message rather than a
-    // platform 413 with no explanation.
-    if (file.size > 3 * 1024 * 1024) {
+    // The real constraint is Vercel's 4.5 MB request-body limit, which
+    // multipart overhead and the other form fields eat into; staying well
+    // under it means an over-sized upload gets this message rather than a
+    // platform 413 with no explanation. The browser downscales photos before
+    // they get here, but that is a convenience on untrusted ground - this
+    // check is the one that actually holds.
+    if (file.size > MAX_UPLOAD_BYTES) {
       return { errors: { file: "File must be 3 MB or smaller" } };
     }
     const buffer = Buffer.from(await file.arrayBuffer());
