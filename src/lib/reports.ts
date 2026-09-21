@@ -2,6 +2,8 @@
  * Read-side aggregations for the dashboard and the report pages (scope 3.5).
  * Everything returns paise; formatting happens in the components.
  */
+import type { Prisma, PrismaClient } from "@prisma/client";
+
 import { db } from "./db";
 import { addDays, startOfDay, startOfMonth, startOfWeek, startOfYear } from "./dates";
 import { isOverdue } from "./loan-service";
@@ -36,10 +38,68 @@ export type PortfolioSummary = {
 };
 
 /** One pass over the ledger, shared by the dashboard tiles and the reports page. */
+type Tx = Prisma.TransactionClient | PrismaClient;
+
+export type InstallmentBuckets = {
+  outstandingPaise: number;
+  overduePaise: number;
+  overdueCount: number;
+  dueThisWeekPaise: number;
+};
+
+/**
+ * Outstanding, overdue and due-this-week, computed inside Postgres.
+ *
+ * This previously loaded every unpaid installment into the process and
+ * looped: fine for a handful of loans, tens of thousands of rows on every
+ * dashboard render once the book is real. The existing (dueDate, status)
+ * index covers the scan.
+ *
+ * The date arithmetic deliberately mirrors isOverdue(). Comparing a raw
+ * timestamp against the start of today is equivalent to comparing whole
+ * days, because any timestamp falling within today is >= todayStart - so
+ * "dueDate < todayStart" and "startOfDay(dueDate) < startOfDay(today)"
+ * select exactly the same rows. Both bounds are passed in already
+ * normalised, so the comparison never depends on the database's timezone.
+ *
+ * Kept verifiable rather than merely plausible: `npm run verify:summary`
+ * runs this and the original loop over the same fixtures and fails on any
+ * disagreement.
+ */
+export async function installmentBuckets(
+  client: Tx,
+  todayStart: Date,
+  weekEnd: Date,
+): Promise<InstallmentBuckets> {
+  const rows = await client.$queryRaw<
+    { outstanding: bigint; overdue: bigint; overdue_count: bigint; due_this_week: bigint }[]
+  >`
+    SELECT
+      COALESCE(SUM("totalPaise" - "paidPaise"), 0) AS outstanding,
+      COALESCE(SUM("totalPaise" - "paidPaise") FILTER (WHERE "dueDate" < ${todayStart}), 0)
+        AS overdue,
+      COUNT(*) FILTER (WHERE "dueDate" < ${todayStart}) AS overdue_count,
+      COALESCE(SUM("totalPaise" - "paidPaise")
+        FILTER (WHERE "dueDate" >= ${todayStart} AND "dueDate" < ${weekEnd}), 0)
+        AS due_this_week
+    FROM "Installment"
+    WHERE "status" IN ('PENDING', 'PARTIAL')
+      AND "totalPaise" > "paidPaise"
+  `;
+
+  const row = rows[0];
+  return {
+    outstandingPaise: Number(row?.outstanding ?? 0),
+    overduePaise: Number(row?.overdue ?? 0),
+    overdueCount: Number(row?.overdue_count ?? 0),
+    dueThisWeekPaise: Number(row?.due_this_week ?? 0),
+  };
+}
+
 export async function portfolioSummary(today = new Date()): Promise<PortfolioSummary> {
   const weekEnd = addDays(startOfDay(today), 7);
 
-  const [customers, activeLoans, loanAgg, installments, paymentAgg, txns, expenseAgg] =
+  const [customers, activeLoans, loanAgg, buckets, paymentAgg, txns, expenseAgg] =
     await Promise.all([
       db.customer.count({ where: { isActive: true } }),
       db.loan.count({ where: { status: "ACTIVE" } }),
@@ -47,31 +107,13 @@ export async function portfolioSummary(today = new Date()): Promise<PortfolioSum
         where: { status: "ACTIVE" },
         _sum: { netDisbursedPaise: true },
       }),
-      db.installment.findMany({
-        where: { status: { in: ["PENDING", "PARTIAL"] } },
-        select: { dueDate: true, totalPaise: true, paidPaise: true, status: true },
-      }),
+      installmentBuckets(db, startOfDay(today), weekEnd),
       db.payment.aggregate({ _sum: { amountPaise: true } }),
       db.investorTxn.groupBy({ by: ["type"], _sum: { amountPaise: true } }),
       db.expense.aggregate({ _sum: { amountPaise: true } }),
     ]);
 
-  let outstandingPaise = 0;
-  let overduePaise = 0;
-  let overdueCount = 0;
-  let dueThisWeekPaise = 0;
-
-  for (const inst of installments) {
-    const owed = inst.totalPaise - inst.paidPaise;
-    if (owed <= 0) continue;
-    outstandingPaise += owed;
-    if (isOverdue(inst, today)) {
-      overduePaise += owed;
-      overdueCount++;
-    } else if (inst.dueDate < weekEnd) {
-      dueThisWeekPaise += owed;
-    }
-  }
+  const { outstandingPaise, overduePaise, overdueCount, dueThisWeekPaise } = buckets;
 
   const byType = (t: string) => txns.find((x) => x.type === t)?._sum.amountPaise ?? 0;
   const investorCapitalPaise = byType("INVESTMENT");
