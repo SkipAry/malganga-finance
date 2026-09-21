@@ -13,7 +13,8 @@
     "test": "tsx src/lib/emi.test.ts",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
-    "create:admin": "tsx prisma/create-admin.ts"
+    "create:admin": "tsx prisma/create-admin.ts",
+    "db:check": "tsx scripts/check-db-url.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
