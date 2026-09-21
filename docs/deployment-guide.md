@@ -141,13 +141,18 @@ single hardware fault away from being unreconstructable.
   raise. 3 MB leaves room for multipart overhead so an oversized file gets the
   app's own error rather than an opaque 413.
 
-  This will bite in the field. Phone cameras routinely produce 3-6 MB photos,
-  so agents will hit the limit photographing an Aadhaar card. Two fixes, in
-  order of effort:
+  Photos are downscaled in the browser before upload
+  (`src/lib/downscale-image.ts`): a 1600px long edge at JPEG q0.8 turns a
+  12 MP phone photo into a few hundred KB, so the cap is no longer reachable
+  by an ordinary camera image. EXIF orientation is applied during decode,
+  because redrawing the pixels drops the tag and portrait photos would
+  otherwise arrive rotated.
 
-  1. **Downscale in the browser before upload** (canvas resize to ~1600px,
-     JPEG q0.8). Turns a 5 MB photo into a few hundred KB, uploads far faster
-     on a field connection, and shrinks the database. Self-contained.
-  2. **Upload straight to Supabase Storage** from the browser and keep only the
-     object key in Postgres. Removes the limit entirely and stops the database
-     carrying binary data. The better long-term answer.
+  Formats the browser cannot decode - notably HEIC on some Android browsers -
+  pass through at original size and are rejected server-side if over the cap.
+  PDFs are never resized. The client-side resize is a convenience; the check
+  in `addDocument` is the control.
+
+  Longer term, uploading straight to Supabase Storage and keeping only the
+  object key in Postgres would remove the limit entirely and stop the database
+  carrying binary data. That remains the better answer if document volume grows.
