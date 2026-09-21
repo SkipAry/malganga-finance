@@ -49,6 +49,13 @@ Database → Connection string**.
 | `DIRECT_URL` | Direct connection, port **5432** | `prisma migrate` only |
 | `AUTH_SECRET` | `openssl rand -base64 32` | Session signing |
 
+Percent-encode special characters in the password. A `#` must be written
+`%23`, `@` as `%40`, `/` as `%2F`. A raw `#` is the nasty one: it opens a URL
+fragment in the middle of the connection string, so everything after it —
+including the host and port — is discarded and Prisma reports a protocol error
+that points nowhere near the real cause. Run `npm run db:check` to catch this
+and the other common paste mistakes before deploying.
+
 The pooler matters on Vercel: serverless functions open many short-lived
 connections and would exhaust direct Postgres slots. Migrations cannot run
 through PgBouncer, hence the second URL.

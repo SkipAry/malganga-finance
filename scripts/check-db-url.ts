@@ -43,19 +43,23 @@ function inspect(name: string, raw: string | undefined): Check[] {
     protocolOk ? undefined : `starts with "${trimmed.slice(0, 12)}…"`);
 
   if (protocolOk) {
+    // A raw '#' opens a URL fragment mid-authority, so what follows the
+    // password is read as a port and parsing fails outright. Check it before
+    // parsing — inside the try it would only run in the case it cannot occur.
+    const credentials = trimmed
+      .slice(trimmed.indexOf("://") + 3)
+      .split("@")
+      .slice(0, -1)
+      .join("@");
+    const rawHash = credentials.includes("#");
+    push(!rawHash, "no unescaped '#' in credentials",
+      rawHash ? "write '#' as %23 — a raw one breaks the whole URL" : undefined);
+
     try {
       const u = new URL(trimmed);
       push(true, "parses as a URL", `host ${u.hostname}, port ${u.port || "(default)"}`);
       push(u.password.length > 0, "password present",
         u.password.length > 0 ? `${u.password.length} characters` : "empty");
-
-      // A raw '#' starts a URL fragment, so the password silently truncates
-      // and authentication fails with a password that looks correct on screen.
-      const afterColon = trimmed.slice(trimmed.indexOf("://") + 3);
-      const credentials = afterColon.slice(0, afterColon.lastIndexOf("@"));
-      const rawHash = credentials.includes("#");
-      push(!rawHash, "no unescaped '#' in credentials",
-        rawHash ? "write '#' as %23 — a raw one truncates the password" : undefined);
 
       const expectedPort = name === "DATABASE_URL" ? "6543" : "5432";
       push(u.port === expectedPort, `port is ${expectedPort}`,
