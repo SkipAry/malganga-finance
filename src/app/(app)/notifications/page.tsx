@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { cancelNotification, dispatchDueReminders } from "@/actions/operations";
+import { FilterTabs } from "@/components/filter-tabs";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { SubmitButton } from "@/components/form-parts";
 import { StatTile } from "@/components/stat-tile";
@@ -100,25 +101,16 @@ export default async function NotificationsPage({
         <CardHeader
           title="Reminder queue"
           action={
-            <div className="flex gap-1">
-              {TABS.map(([value, label]) => (
-                <Link
-                  key={value}
-                  href={`/notifications?status=${value}`}
-                  className="rounded-lg px-3 py-1.5 text-[13px] transition-colors"
-                  style={
-                    status === value
-                      ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                      : { color: "var(--text-muted)" }
-                  }
-                >
-                  {label}
-                  <span className="ml-1.5 text-[11.5px]" style={{ color: "var(--text-faint)" }}>
-                    {countOf(value)}
-                  </span>
-                </Link>
-              ))}
-            </div>
+            <FilterTabs
+              basePath="/notifications"
+              param="status"
+              value={status}
+              options={TABS.map(([value, label]) => ({
+                value,
+                label,
+                count: countOf(value),
+              }))}
+            />
           }
         />
 

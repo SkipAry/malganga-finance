@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import { ExpenseForm } from "./expense-form";
 import { removeExpense } from "@/actions/operations";
+import { FilterTabs } from "@/components/filter-tabs";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { StatTile } from "@/components/stat-tile";
 import { ModeBadge } from "@/components/status-badges";
@@ -81,32 +81,19 @@ export default async function ExpensesPage({
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1.5fr_1fr] lg:items-start">
         <Card>
-          <div className="flex flex-wrap items-center gap-1 border-b p-4">
-            <Link
-              href="/expenses"
-              className="rounded-lg px-3 py-1.5 text-[13px]"
-              style={
-                category === "all"
-                  ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                  : { color: "var(--text-muted)" }
-              }
-            >
-              All
-            </Link>
-            {(Object.keys(EXPENSE_CATEGORY_LABEL) as ExpenseCategory[]).map((c) => (
-              <Link
-                key={c}
-                href={`/expenses?category=${c}`}
-                className="rounded-lg px-3 py-1.5 text-[13px]"
-                style={
-                  category === c
-                    ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                    : { color: "var(--text-muted)" }
-                }
-              >
-                {EXPENSE_CATEGORY_LABEL[c]}
-              </Link>
-            ))}
+          <div className="border-b p-4">
+            <FilterTabs
+              basePath="/expenses"
+              param="category"
+              value={category}
+              options={[
+                { value: "all", label: "All" },
+                ...(Object.keys(EXPENSE_CATEGORY_LABEL) as ExpenseCategory[]).map((c) => ({
+                  value: c,
+                  label: EXPENSE_CATEGORY_LABEL[c],
+                })),
+              ]}
+            />
           </div>
 
           {expenses.length === 0 ? (

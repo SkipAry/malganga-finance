@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FilterTabs } from "@/components/filter-tabs";
 import { StatTile } from "@/components/stat-tile";
 import { InstallmentStatusBadge } from "@/components/status-badges";
 import {
@@ -44,26 +45,17 @@ export default async function CollectionsPage({
         title="Collections"
         subtitle="Everything overdue, plus what falls due next — worked oldest first."
         actions={
-          <div className="flex gap-1">
-            {[
-              ["0", "Overdue only"],
-              ["7", "7 days"],
-              ["30", "30 days"],
-            ].map(([value, label]) => (
-              <Link
-                key={value}
-                href={`/collections?days=${value}`}
-                className="rounded-lg border px-3 py-1.5 text-[13px] transition-colors"
-                style={
-                  String(horizon) === value
-                    ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                    : { color: "var(--text-muted)" }
-                }
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
+          <FilterTabs
+            basePath="/collections"
+            param="days"
+            value={String(horizon)}
+            variant="bordered"
+            options={[
+              { value: "0", label: "Overdue only" },
+              { value: "7", label: "7 days" },
+              { value: "30", label: "30 days" },
+            ]}
+          />
         }
       />
 

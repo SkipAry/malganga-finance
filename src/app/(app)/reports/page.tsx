@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FilterTabs } from "@/components/filter-tabs";
 import { PrintButton } from "@/components/print-button";
 import { StatTile } from "@/components/stat-tile";
 import { InvestorTypeBadge } from "@/components/status-badges";
@@ -66,22 +67,13 @@ export default async function ReportsPage({
         subtitle={`${formatDate(from)} — ${formatDate(new Date(to.getTime() - 86_400_000))}`}
         actions={
           <>
-            <div className="flex gap-1">
-              {PERIODS.map(([value, label]) => (
-                <Link
-                  key={value}
-                  href={`/reports?period=${value}`}
-                  className="rounded-lg border px-3 py-1.5 text-[13px] transition-colors"
-                  style={
-                    period === value
-                      ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                      : { color: "var(--text-muted)" }
-                  }
-                >
-                  {label}
-                </Link>
-              ))}
-            </div>
+            <FilterTabs
+              basePath="/reports"
+              param="period"
+              value={period}
+              variant="bordered"
+              options={PERIODS.map(([value, label]) => ({ value, label }))}
+            />
             <LinkButton href={`/api/export?report=customers`}>Export CSV</LinkButton>
             <PrintButton />
           </>

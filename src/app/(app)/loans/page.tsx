@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FilterTabs } from "@/components/filter-tabs";
 import { SearchBar } from "@/components/search-bar";
 import { LoanStatusBadge } from "@/components/status-badges";
 import {
@@ -75,22 +76,13 @@ export default async function LoansPage({
       <Card>
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
           <SearchBar placeholder="Search loan code, customer or phone…" />
-          <div className="flex gap-1">
-            {TABS.map(([value, label]) => (
-              <Link
-                key={value}
-                href={`/loans?status=${value}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-                className="rounded-lg px-3 py-1.5 text-[13px] transition-colors"
-                style={
-                  status === value
-                    ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                    : { color: "var(--text-muted)" }
-                }
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
+          <FilterTabs
+            basePath="/loans"
+            param="status"
+            value={status}
+            searchParams={{ q }}
+            options={TABS.map(([value, label]) => ({ value, label }))}
+          />
         </div>
 
         {loans.length === 0 ? (

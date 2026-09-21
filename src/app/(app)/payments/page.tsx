@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { deletePayment } from "@/actions/loans";
+import { FilterTabs } from "@/components/filter-tabs";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { SearchBar } from "@/components/search-bar";
 import { StatTile } from "@/components/stat-tile";
@@ -98,26 +99,17 @@ export default async function PaymentsPage({
       <Card className="mt-4">
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
           <SearchBar placeholder="Search customer, loan code or reference…" />
-          <div className="flex gap-1">
-            {[
-              ["all", "All"],
-              ["CASH", "Cash"],
-              ["ONLINE", "Online"],
-            ].map(([value, label]) => (
-              <Link
-                key={value}
-                href={`/payments?mode=${value}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-                className="rounded-lg px-3 py-1.5 text-[13px] transition-colors"
-                style={
-                  mode === value
-                    ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                    : { color: "var(--text-muted)" }
-                }
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
+          <FilterTabs
+            basePath="/payments"
+            param="mode"
+            value={mode}
+            searchParams={{ q }}
+            options={[
+              { value: "all", label: "All" },
+              { value: "CASH", label: "Cash" },
+              { value: "ONLINE", label: "Online" },
+            ]}
+          />
         </div>
 
         {payments.length === 0 ? (

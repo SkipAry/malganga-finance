@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { FilterTabs } from "@/components/filter-tabs";
 import { SearchBar } from "@/components/search-bar";
 import {
   Badge,
@@ -74,26 +75,17 @@ export default async function CustomersPage({
       <Card>
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
           <SearchBar placeholder="Search name, phone, code or shop…" />
-          <div className="flex gap-1">
-            {[
-              ["active", "Active"],
-              ["inactive", "Inactive"],
-              ["all", "All"],
-            ].map(([value, label]) => (
-              <Link
-                key={value}
-                href={`/customers?status=${value}${q ? `&q=${encodeURIComponent(q)}` : ""}`}
-                className="rounded-lg px-3 py-1.5 text-[13px] transition-colors"
-                style={
-                  status === value
-                    ? { background: "var(--bg-sunken)", fontWeight: 500 }
-                    : { color: "var(--text-muted)" }
-                }
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
+          <FilterTabs
+            basePath="/customers"
+            param="status"
+            value={status}
+            searchParams={{ q }}
+            options={[
+              { value: "active", label: "Active" },
+              { value: "inactive", label: "Inactive" },
+              { value: "all", label: "All" },
+            ]}
+          />
         </div>
 
         {customers.length === 0 ? (
