@@ -170,13 +170,13 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
                       <Td>
                         {formatDate(inst.dueDate)}
                         {overdue ? (
-                          <span className="block text-[11.5px] text-risk-500">
+                          <span className="block text-[11.5px] text-ontone-risk">
                             {dueLabel(inst.dueDate, today)}
                           </span>
                         ) : null}
                       </Td>
                       <Td align="right">{formatMoney(inst.totalPaise)}</Td>
-                      <Td align="right" className={inst.paidPaise > 0 ? "text-money-600" : undefined}>
+                      <Td align="right" className={inst.paidPaise > 0 ? "text-ontone-money" : undefined}>
                         {inst.paidPaise > 0 ? formatMoney(inst.paidPaise) : "—"}
                       </Td>
                       <Td align="right">
@@ -229,7 +229,7 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
                   {loan.payments.map((p) => (
                     <Tr key={p.id}>
                       <Td>{formatDate(p.receivedOn)}</Td>
-                      <Td align="right" className="font-semibold text-money-600">
+                      <Td align="right" className="font-semibold text-ontone-money">
                         {formatMoney(p.amountPaise)}
                       </Td>
                       <Td><ModeBadge mode={p.mode} /></Td>

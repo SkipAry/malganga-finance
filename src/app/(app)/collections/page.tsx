@@ -128,7 +128,7 @@ export default async function CollectionsPage({
                     {formatDate(row.dueDate)}
                     <span
                       className="block text-[12px]"
-                      style={{ color: row.overdue ? "var(--color-risk-500)" : "var(--text-faint)" }}
+                      style={{ color: row.overdue ? "var(--tone-risk)" : "var(--text-faint)" }}
                     >
                       {dueLabel(row.dueDate, today)}
                     </span>

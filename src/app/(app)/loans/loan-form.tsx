@@ -273,7 +273,7 @@ export function LoanForm({
                       className="text-[14px] font-semibold tnum"
                       style={
                         index === 4
-                          ? { color: marginWarning ? "var(--color-risk-500)" : "var(--color-money-600)" }
+                          ? { color: marginWarning ? "var(--tone-risk)" : "var(--tone-money)" }
                           : undefined
                       }
                     >

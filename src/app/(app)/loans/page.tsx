@@ -143,7 +143,7 @@ export default async function LoansPage({
                       </span>
                     </Td>
                     <Td align="right">{formatMoney(loan.netDisbursedPaise)}</Td>
-                    <Td align="right" className={overdue && owed > 0 ? "font-semibold text-risk-500" : "font-medium"}>
+                    <Td align="right" className={overdue && owed > 0 ? "font-semibold text-ontone-risk" : "font-medium"}>
                       {formatMoney(owed)}
                     </Td>
                     <Td>

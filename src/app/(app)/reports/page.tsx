@@ -164,9 +164,9 @@ export default async function ReportsPage({
                   </Td>
                   <Td align="center">{c.loans}</Td>
                   <Td align="right">{formatMoney(c.disbursedPaise)}</Td>
-                  <Td align="right" className="text-money-600">{formatMoney(c.collectedPaise)}</Td>
+                  <Td align="right" className="text-ontone-money">{formatMoney(c.collectedPaise)}</Td>
                   <Td align="right" className="font-medium">{formatMoney(c.outstandingPaise)}</Td>
-                  <Td align="right" className={c.overduePaise ? "font-semibold text-risk-500" : undefined}>
+                  <Td align="right" className={c.overduePaise ? "font-semibold text-ontone-risk" : undefined}>
                     {c.overduePaise ? formatMoney(c.overduePaise) : "—"}
                   </Td>
                 </Tr>

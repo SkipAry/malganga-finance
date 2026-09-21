@@ -41,6 +41,13 @@
   --color-risk-500: #e02424;
   --color-risk-100: #fde8e8;
 
+  /* Text-on-surface tones. Indirect so a single utility works in both themes;
+     the fixed --color-*-500/600 scale above stays for backgrounds and fills. */
+  --color-ontone-money: var(--tone-money);
+  --color-ontone-warn: var(--tone-warn);
+  --color-ontone-risk: var(--tone-risk);
+  --color-ontone-brand: var(--tone-brand);
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", monospace;
 
@@ -54,8 +61,14 @@
   --border: #e2e6ed;
   --border-strong: #cfd5e0;
   --text: #141922;
-  --text-muted: #667085;
-  --text-faint: #8792a6;
+  --text-muted: #4d5768;
+  /* Holds >=4.5:1 on --bg-elev AND on --bg-sunken (table row hover). */
+  --text-faint: #626c7e;
+  /* All >= 4.5:1 on --bg-elev for body-size text (WCAG 1.4.3). */
+  --tone-money: #057a55;
+  --tone-warn: #92400e;
+  --tone-risk: #c81e1e;
+  --tone-brand: #2450eb;
   --sidebar: #0f1621;
   --sidebar-text: #aab4c5;
   --sidebar-active: #1c2735;
@@ -72,7 +85,11 @@
   --border-strong: #333c4b;
   --text: #e7eaf0;
   --text-muted: #9aa4b6;
-  --text-faint: #6b7688;
+  --text-faint: #8792a6;
+  --tone-money: #34d399;
+  --tone-warn: #fbbf24;
+  --tone-risk: #f87171;
+  --tone-brand: #6090fa;
   --sidebar: #090c12;
   --sidebar-text: #8b95a8;
   --sidebar-active: #1a212c;
@@ -90,7 +107,11 @@
     --border-strong: #333c4b;
     --text: #e7eaf0;
     --text-muted: #9aa4b6;
-    --text-faint: #6b7688;
+    --text-faint: #8792a6;
+    --tone-money: #34d399;
+    --tone-warn: #fbbf24;
+    --tone-risk: #f87171;
+    --tone-brand: #6090fa;
     --sidebar: #090c12;
     --sidebar-text: #8b95a8;
     --sidebar-active: #1a212c;
@@ -114,6 +135,32 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/*
+ * Tinted chips (badges, callouts, inline success/error notes).
+ * The background is derived from the tone itself, so the pair re-derives per
+ * theme instead of pinning a pale tint that a light-on-dark tone cannot sit on.
+ * 12% keeps every tone/​surface pair at or above 4.5:1 in both themes.
+ */
+.tone-chip {
+  background: color-mix(in srgb, var(--chip) 12%, var(--bg-elev));
+  color: var(--chip);
+}
+.tone-money { --chip: var(--tone-money); }
+.tone-warn { --chip: var(--tone-warn); }
+.tone-risk { --chip: var(--tone-risk); }
+.tone-brand { --chip: var(--tone-brand); }
+.tone-neutral {
+  background: var(--bg-sunken);
+  color: var(--text-muted);
+}
+
+/* Tailwind v4 preflight sets buttons to cursor:default; restore the affordance. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+summary {
+  cursor: pointer;
 }
 
 /* Numbers line up in columns — non-negotiable in a ledger. */

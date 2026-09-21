@@ -167,7 +167,7 @@ export default async function CustomersPage({
                       ) : null}
                     </Td>
                     <Td align="right">{outstanding ? formatMoney(outstanding) : "—"}</Td>
-                    <Td align="right" className={overdue ? "font-semibold text-risk-500" : undefined}>
+                    <Td align="right" className={overdue ? "font-semibold text-ontone-risk" : undefined}>
                       {overdue ? formatMoney(overdue) : "—"}
                     </Td>
                     <Td>{formatDate(c.createdAt)}</Td>

@@ -26,6 +26,17 @@ const full = new Intl.NumberFormat("en-IN", {
   maximumFractionDigits: 0,
 });
 
+/**
+ * Each series carries its own dash pattern as well as its own colour, so the
+ * three lines stay tellable apart in greyscale, in print and for the ~8% of
+ * men with a colour-vision deficiency (WCAG 1.4.1).
+ */
+const SERIES = [
+  { key: "collected", name: "Collected", color: "var(--tone-money)", dash: undefined, fill: "url(#gCollected)" },
+  { key: "disbursed", name: "Disbursed", color: "var(--tone-brand)", dash: "7 4", fill: "url(#gDisbursed)" },
+  { key: "expenses", name: "Expenses", color: "var(--tone-warn)", dash: "2 3", fill: "none" },
+] as const;
+
 export function TrendChart({ data }: { data: TrendPoint[] }) {
   return (
     <div className="h-[260px] w-full px-2 pb-2 pt-4">
@@ -33,12 +44,12 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
         <AreaChart data={data} margin={{ top: 4, right: 12, left: 4, bottom: 0 }}>
           <defs>
             <linearGradient id="gCollected" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-money-500)" stopOpacity={0.28} />
-              <stop offset="100%" stopColor="var(--color-money-500)" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--tone-money)" stopOpacity={0.24} />
+              <stop offset="100%" stopColor="var(--tone-money)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="gDisbursed" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-brand-500)" stopOpacity={0.24} />
-              <stop offset="100%" stopColor="var(--color-brand-500)" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--tone-brand)" stopOpacity={0.18} />
+              <stop offset="100%" stopColor="var(--tone-brand)" stopOpacity={0} />
             </linearGradient>
           </defs>
 
@@ -69,36 +80,26 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
             }}
             cursor={{ stroke: "var(--border-strong)" }}
           />
+          {/* plainline so the legend swatch shows each series' actual dash pattern */}
           <Legend
-            iconType="circle"
-            iconSize={8}
-            wrapperStyle={{ fontSize: 12, paddingTop: 8, color: "var(--text-muted)" }}
+            iconType="plainline"
+            iconSize={18}
+            wrapperStyle={{ fontSize: 13, paddingTop: 10, color: "var(--text-muted)" }}
           />
-          <Area
-            type="monotone"
-            dataKey="collected"
-            name="Collected"
-            stroke="var(--color-money-500)"
-            strokeWidth={2}
-            fill="url(#gCollected)"
-          />
-          <Area
-            type="monotone"
-            dataKey="disbursed"
-            name="Disbursed"
-            stroke="var(--color-brand-500)"
-            strokeWidth={2}
-            fill="url(#gDisbursed)"
-          />
-          <Area
-            type="monotone"
-            dataKey="expenses"
-            name="Expenses"
-            stroke="var(--color-warn-500)"
-            strokeWidth={1.5}
-            strokeDasharray="4 3"
-            fill="none"
-          />
+
+          {SERIES.map((s) => (
+            <Area
+              key={s.key}
+              type="monotone"
+              dataKey={s.key}
+              name={s.name}
+              stroke={s.color}
+              strokeWidth={2}
+              strokeDasharray={s.dash}
+              fill={s.fill}
+              activeDot={{ r: 4, strokeWidth: 2 }}
+            />
+          ))}
         </AreaChart>
       </ResponsiveContainer>
     </div>

@@ -121,7 +121,7 @@ export default async function InvestorPage({ params }: { params: Promise<{ id: s
                       className="font-semibold"
                       style={{
                         color:
-                          t.type === "INVESTMENT" ? "var(--color-money-600)" : "var(--color-warn-500)",
+                          t.type === "INVESTMENT" ? "var(--tone-money)" : "var(--tone-warn)",
                       }}
                     >
                       {t.type === "INVESTMENT" ? "+" : "−"}

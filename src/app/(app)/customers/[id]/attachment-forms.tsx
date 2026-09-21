@@ -11,7 +11,7 @@ import { ASSET_TYPES, ASSET_TYPE_LABEL, DOCUMENT_KINDS, DOCUMENT_KIND_LABEL } fr
 function Saved({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p className="rounded-lg bg-money-100 px-3 py-2 text-[12.5px] font-medium text-money-600">
+    <p className="tone-chip tone-money rounded-lg px-3 py-2 text-[12.5px] font-medium">
       {message}
     </p>
   );

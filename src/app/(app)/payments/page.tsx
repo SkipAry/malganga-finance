@@ -159,7 +159,7 @@ export default async function PaymentsPage({
                       </span>
                     ) : null}
                   </Td>
-                  <Td align="right" className="font-semibold text-money-600">
+                  <Td align="right" className="font-semibold text-ontone-money">
                     {formatMoney(p.amountPaise)}
                   </Td>
                   <Td><ModeBadge mode={p.mode} /></Td>

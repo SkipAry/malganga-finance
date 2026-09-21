@@ -198,7 +198,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                       <a
                         href={doc.fileData}
                         download={doc.fileName ?? "document"}
-                        className="text-[13px] font-medium text-brand-600 hover:underline"
+                        className="text-[13px] font-medium text-ontone-brand hover:underline"
                       >
                         Download
                       </a>

@@ -163,11 +163,11 @@ export function Field({
     <div className={cx("flex flex-col gap-1.5", className)}>
       <label htmlFor={htmlFor} className="text-[13px] font-medium">
         {label}
-        {required ? <span className="ml-0.5 text-risk-500">*</span> : null}
+        {required ? <span className="ml-0.5 text-ontone-risk">*</span> : null}
       </label>
       {children}
       {error ? (
-        <p role="alert" className="text-[12.5px] text-risk-500">
+        <p role="alert" className="text-[12.5px] text-ontone-risk">
           {error}
         </p>
       ) : hint ? (
@@ -215,12 +215,13 @@ export function Textarea({
 
 type Tone = "neutral" | "money" | "warn" | "risk" | "brand";
 
+/** Tint + text derived from one tone token, so both themes stay legible. */
 const toneClass: Record<Tone, string> = {
-  neutral: "bg-[var(--bg-sunken)] text-[var(--text-muted)]",
-  money: "bg-money-100 text-money-600",
-  warn: "bg-warn-100 text-warn-500",
-  risk: "bg-risk-100 text-risk-500",
-  brand: "bg-brand-100 text-brand-700",
+  neutral: "tone-neutral",
+  money: "tone-chip tone-money",
+  warn: "tone-chip tone-warn",
+  risk: "tone-chip tone-risk",
+  brand: "tone-chip tone-brand",
 };
 
 export function Badge({

@@ -53,7 +53,7 @@ export function FormError({ message }: { message?: string }) {
   return (
     <div
       role="alert"
-      className="rounded-lg bg-risk-100 px-3.5 py-2.5 text-[13px] font-medium text-risk-500"
+      className="tone-chip tone-risk rounded-lg px-3.5 py-2.5 text-[13px] font-medium"
     >
       {message}
     </div>

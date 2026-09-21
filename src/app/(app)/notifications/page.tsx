@@ -175,7 +175,7 @@ export default async function NotificationsPage({
                   </Td>
                   <Td className="max-w-sm text-[12.5px]" style={{ color: "var(--text-muted)" }}>
                     <span className="line-clamp-2">{n.message}</span>
-                    {n.error ? <span className="block text-risk-500">{n.error}</span> : null}
+                    {n.error ? <span className="block text-ontone-risk">{n.error}</span> : null}
                   </Td>
                   <Td align="right"><StatusBadge status={n.status} /></Td>
                   {status === "PENDING" ? (
