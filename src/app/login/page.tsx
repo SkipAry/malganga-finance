@@ -20,20 +20,20 @@ export default async function LoginPage() {
       >
         <div className="flex items-center gap-3">
           <span
-            className="grid h-10 w-10 place-items-center rounded-xl text-[17px] font-bold text-white"
+            className="grid h-10 w-10 place-items-center rounded-xl text-lg font-bold text-white"
             style={{ background: "linear-gradient(140deg,var(--color-brand-500),var(--color-brand-700))" }}
             aria-hidden
           >
             M
           </span>
-          <span className="text-[15px] font-semibold text-white">Malganga Finance</span>
+          <span className="text-lg font-semibold text-white">Malganga Finance</span>
         </div>
 
         <div className="max-w-md">
-          <h2 className="text-[34px] font-semibold leading-[1.15] tracking-[-0.025em] text-white">
+          <h2 className="text-3xl font-semibold leading-[1.15] tracking-[-0.025em] text-white">
             Every loan, EMI and rupee — in one ledger.
           </h2>
-          <p className="mt-4 text-[15px] leading-relaxed text-white/60">
+          <p className="mt-4 text-lg leading-relaxed text-white/60">
             Customer onboarding, disbursement, EMI collection, investor capital and
             day-to-day expenses, tracked end to end.
           </p>
@@ -44,14 +44,14 @@ export default async function LoginPage() {
               ["Books", "Weekly · monthly · yearly"],
             ].map(([k, v]) => (
               <div key={k}>
-                <dt className="text-[11px] uppercase tracking-[0.08em] text-white/40">{k}</dt>
-                <dd className="mt-1 text-[13px] font-medium text-white/85">{v}</dd>
+                <dt className="text-2xs uppercase tracking-[0.08em] text-white/40">{k}</dt>
+                <dd className="mt-1 text-sm font-medium text-white/85">{v}</dd>
               </div>
             ))}
           </dl>
         </div>
 
-        <p className="text-[12px] text-white/35">
+        <p className="text-xs text-white/35">
           Authorised access only. All activity is recorded.
         </p>
       </aside>
@@ -60,7 +60,7 @@ export default async function LoginPage() {
         <div className="w-full max-w-sm">
           <div className="mb-8 lg:hidden">
             <span
-              className="grid h-11 w-11 place-items-center rounded-xl text-[18px] font-bold text-white"
+              className="grid h-11 w-11 place-items-center rounded-xl text-lg font-bold text-white"
               style={{ background: "linear-gradient(140deg,var(--color-brand-500),var(--color-brand-700))" }}
               aria-hidden
             >
@@ -68,15 +68,15 @@ export default async function LoginPage() {
             </span>
           </div>
 
-          <h1 className="text-[24px] font-semibold tracking-[-0.02em]">Sign in</h1>
-          <p className="mt-1 mb-7 text-[14px]" style={{ color: "var(--text-muted)" }}>
+          <h1 className="text-2xl font-semibold tracking-[-0.02em]">Sign in</h1>
+          <p className="mt-1 mb-7 text-base" style={{ color: "var(--text-muted)" }}>
             Use the credentials issued by your administrator.
           </p>
 
           <LoginForm />
 
           {process.env.NODE_ENV !== "production" ? (
-            <Card className="mt-8 p-4 text-[12.5px]" style={{ background: "var(--bg-sunken)" }}>
+            <Card className="mt-8 p-4 text-sm" style={{ background: "var(--bg-sunken)" }}>
               <p className="font-semibold">Demo sign-ins</p>
               <ul className="mt-1.5 space-y-0.5" style={{ color: "var(--text-muted)" }}>
                 <li>admin@malganga.in · Admin@12345</li>

@@ -33,11 +33,11 @@ export default async function SchedulePage({ params }: { params: Promise<{ id: s
 
       <Card className="p-8">
         <header className="mb-6 border-b pb-5">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-faint)" }}>
+          <p className="text-xs font-semibold uppercase tracking-[0.1em]" style={{ color: "var(--text-faint)" }}>
             Malganga Finance
           </p>
-          <h1 className="mt-1 text-[22px] font-semibold tracking-[-0.02em]">Repayment schedule</h1>
-          <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2 text-[13px] sm:grid-cols-3">
+          <h1 className="mt-1 text-xl font-semibold tracking-[-0.02em]">Repayment schedule</h1>
+          <dl className="mt-4 grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-3">
             {[
               ["Loan", loan.code],
               ["Customer", loan.customer.name],
@@ -71,7 +71,7 @@ export default async function SchedulePage({ params }: { params: Promise<{ id: s
                 <Td>{formatDate(inst.dueDate)}</Td>
                 <Td align="right">{formatMoney(inst.totalPaise)}</Td>
                 <Td align="right">{inst.paidPaise ? formatMoney(inst.paidPaise) : "—"}</Td>
-                <Td align="right" className="text-[12.5px]">
+                <Td align="right" className="text-sm">
                   {INSTALLMENT_STATUS_LABEL[inst.status as InstallmentStatus] ?? inst.status}
                 </Td>
               </Tr>
@@ -85,7 +85,7 @@ export default async function SchedulePage({ params }: { params: Promise<{ id: s
           </tbody>
         </Table>
 
-        <p className="mt-6 text-[12px]" style={{ color: "var(--text-faint)" }}>
+        <p className="mt-6 text-xs" style={{ color: "var(--text-faint)" }}>
           Generated {formatDate(new Date())}. Amounts in Indian Rupees.
         </p>
       </Card>

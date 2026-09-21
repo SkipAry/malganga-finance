@@ -121,7 +121,7 @@ export default async function ExpensesPage({
                     <Td className="max-w-xs truncate">{x.description}</Td>
                     <Td align="right" className="font-semibold">{formatMoney(x.amountPaise)}</Td>
                     <Td><ModeBadge mode={x.mode} /></Td>
-                    <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                    <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                       {x.recordedBy?.name ?? "—"}
                     </Td>
                     {isAdmin ? (
@@ -150,7 +150,7 @@ export default async function ExpensesPage({
           <Card>
             <CardHeader title="This month by category" />
             {breakdown.length === 0 ? (
-              <p className="px-5 py-4 text-[13.5px]" style={{ color: "var(--text-muted)" }}>
+              <p className="px-5 py-4 text-sm" style={{ color: "var(--text-muted)" }}>
                 Nothing recorded this month.
               </p>
             ) : (
@@ -159,11 +159,11 @@ export default async function ExpensesPage({
                   .sort((a, b) => b.amountPaise - a.amountPaise)
                   .map((b) => (
                     <div key={b.category} className="flex items-baseline justify-between gap-4 px-5 py-2.5">
-                      <dt className="text-[13.5px]" style={{ color: "var(--text-muted)" }}>
+                      <dt className="text-sm" style={{ color: "var(--text-muted)" }}>
                         {EXPENSE_CATEGORY_LABEL[b.category as ExpenseCategory] ?? b.category}
-                        <span className="ml-1.5 text-[12px]">({b.count})</span>
+                        <span className="ml-1.5 text-xs">({b.count})</span>
                       </dt>
-                      <dd className="text-[14px] font-semibold tnum">{formatMoney(b.amountPaise)}</dd>
+                      <dd className="text-base font-semibold tnum">{formatMoney(b.amountPaise)}</dd>
                     </div>
                   ))}
               </dl>

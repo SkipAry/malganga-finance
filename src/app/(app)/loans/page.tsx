@@ -117,7 +117,7 @@ export default async function LoansPage({
                       <Link href={`/loans/${loan.id}`} className="font-medium hover:underline">
                         {loan.code}
                       </Link>
-                      <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                      <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         {formatDate(loan.disbursedOn)}
                       </span>
                     </Td>
@@ -127,10 +127,10 @@ export default async function LoansPage({
                       </Link>
                     </Td>
                     <Td>
-                      <span className="text-[13px]">
+                      <span className="text-sm">
                         {loan.tenure} × {loan.frequency === "WEEKLY" ? "weekly" : "monthly"}
                       </span>
-                      <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                      <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         {loan.interestRatePct}% / month
                       </span>
                     </Td>
@@ -141,7 +141,7 @@ export default async function LoansPage({
                     <Td>
                       <div className="w-28">
                         <Progress value={pct(paid, total)} tone={overdue ? "risk" : "money"} />
-                        <span className="mt-1 block text-[11.5px] tnum" style={{ color: "var(--text-faint)" }}>
+                        <span className="mt-1 block text-xs tnum" style={{ color: "var(--text-faint)" }}>
                           {Math.round(pct(paid, total))}% repaid
                         </span>
                       </div>

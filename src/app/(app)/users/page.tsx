@@ -68,12 +68,12 @@ export default async function UsersPage() {
                     <Td className="font-medium">
                       {u.name}
                       {u.id === admin.id ? (
-                        <span className="ml-2 text-[11.5px]" style={{ color: "var(--text-faint)" }}>
+                        <span className="ml-2 text-xs" style={{ color: "var(--text-faint)" }}>
                           you
                         </span>
                       ) : null}
                     </Td>
-                    <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                    <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                       {u.email}
                     </Td>
                     <Td>
@@ -81,7 +81,7 @@ export default async function UsersPage() {
                         {ROLE_LABEL[u.role as Role] ?? u.role}
                       </Badge>
                     </Td>
-                    <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                    <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                       {u.investor ? `${u.investor.name} · ${u.investor.code}` : "—"}
                     </Td>
                     <Td align="right">
@@ -127,10 +127,10 @@ export default async function UsersPage() {
               <tbody>
                 {auditLog.map((log) => (
                   <Tr key={log.id}>
-                    <Td className="text-[13px]">{formatDateTime(log.createdAt)}</Td>
-                    <Td className="text-[13px]">{log.user?.name ?? "—"}</Td>
-                    <Td className="text-[13px]">{log.action}</Td>
-                    <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                    <Td className="text-sm">{formatDateTime(log.createdAt)}</Td>
+                    <Td className="text-sm">{log.user?.name ?? "—"}</Td>
+                    <Td className="text-sm">{log.action}</Td>
+                    <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                       {log.entity}
                     </Td>
                   </Tr>
@@ -143,7 +143,7 @@ export default async function UsersPage() {
         <Card>
           <CardHeader title="Add a user" />
           <UserForm investors={investors} />
-          <p className="border-t px-5 py-3 text-[12px]" style={{ color: "var(--text-faint)" }}>
+          <p className="border-t px-5 py-3 text-xs" style={{ color: "var(--text-faint)" }}>
             Signed in as {admin.name} · {formatDate(new Date())}
           </p>
         </Card>

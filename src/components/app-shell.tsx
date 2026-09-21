@@ -29,17 +29,17 @@ function Wordmark() {
   return (
     <Link href="/" className="flex items-center gap-2.5 px-2">
       <span
-        className="grid h-8 w-8 place-items-center rounded-lg text-[15px] font-bold text-white"
+        className="grid h-8 w-8 place-items-center rounded-lg text-lg font-bold text-white"
         style={{ background: "linear-gradient(140deg,var(--color-brand-500),var(--color-brand-700))" }}
         aria-hidden
       >
         M
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-[14px] font-semibold leading-tight text-white">
+        <span className="block truncate text-base font-semibold leading-tight text-white">
           Malganga Finance
         </span>
-        <span className="block text-[11px] leading-tight" style={{ color: "var(--sidebar-text)" }}>
+        <span className="block text-2xs leading-tight" style={{ color: "var(--sidebar-text)" }}>
           Loan management
         </span>
       </span>
@@ -120,7 +120,7 @@ export function AppShell({
       {groups.map(([group, items]) => (
         <div key={group}>
           <p
-            className="mb-1.5 px-3 text-[10.5px] font-semibold uppercase tracking-[0.1em]"
+            className="mb-1.5 px-3 text-2xs font-semibold uppercase tracking-[0.1em]"
             style={{ color: "var(--sidebar-text)", opacity: 0.6 }}
           >
             {group}
@@ -134,7 +134,7 @@ export function AppShell({
                     href={item.href}
                     aria-current={active ? "page" : undefined}
                     className={cx(
-                      "flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] transition-colors",
+                      "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                       active ? "font-medium text-white" : "hover:text-white",
                     )}
                     style={{
@@ -166,8 +166,8 @@ export function AppShell({
         </div>
         {nav}
         <div className="border-t border-white/[0.06] px-4 py-3">
-          <p className="truncate text-[12.5px] font-medium text-white">{user.name}</p>
-          <p className="truncate text-[11.5px]" style={{ color: "var(--sidebar-text)" }}>
+          <p className="truncate text-sm font-medium text-white">{user.name}</p>
+          <p className="truncate text-xs" style={{ color: "var(--sidebar-text)" }}>
             {ROLE_LABEL[user.role]}
           </p>
         </div>
@@ -215,22 +215,22 @@ export function AppShell({
 
           <div className="flex items-center gap-2.5 border-l pl-3">
             <span
-              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[12px] font-semibold"
+              className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold"
               style={{ background: "var(--bg-sunken)", color: "var(--text-muted)" }}
               aria-hidden
             >
               {user.name.slice(0, 2).toUpperCase()}
             </span>
             <div className="hidden min-w-0 sm:block">
-              <p className="truncate text-[13px] font-medium leading-tight">{user.name}</p>
-              <p className="truncate text-[11.5px] leading-tight" style={{ color: "var(--text-faint)" }}>
+              <p className="truncate text-sm font-medium leading-tight">{user.name}</p>
+              <p className="truncate text-xs leading-tight" style={{ color: "var(--text-faint)" }}>
                 {ROLE_LABEL[user.role]}
               </p>
             </div>
             <form action="/api/logout" method="post">
               <button
                 type="submit"
-                className="rounded-lg px-2.5 py-1.5 text-[12.5px] transition-colors hover:bg-[var(--bg-sunken)]"
+                className="rounded-lg px-2.5 py-1.5 text-sm transition-colors hover:bg-[var(--bg-sunken)]"
                 style={{ color: "var(--text-muted)" }}
               >
                 Sign out

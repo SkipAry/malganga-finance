@@ -266,11 +266,11 @@ export function LoanForm({
                   ["Last EMI", formatDate(preview.schedule.lastEmiOn)],
                 ].map(([label, value], index) => (
                   <div key={label} className="flex items-baseline justify-between gap-4 px-5 py-2.5">
-                    <dt className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                    <dt className="text-sm" style={{ color: "var(--text-muted)" }}>
                       {label}
                     </dt>
                     <dd
-                      className="text-[14px] font-semibold tnum"
+                      className="text-base font-semibold tnum"
                       style={
                         index === 4
                           ? { color: marginWarning ? "var(--tone-risk)" : "var(--tone-money)" }
@@ -293,7 +293,7 @@ export function LoanForm({
               ) : null}
             </>
           ) : (
-            <p className="p-5 text-[13.5px]" style={{ color: "var(--text-muted)" }}>
+            <p className="p-5 text-sm" style={{ color: "var(--text-muted)" }}>
               Enter an amount and tenure to preview the schedule.
             </p>
           )}

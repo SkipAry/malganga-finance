@@ -128,14 +128,14 @@ export default async function CustomersPage({
                       <Link href={`/customers/${c.id}`} className="font-medium hover:underline">
                         {c.name}
                       </Link>
-                      <span className="ml-2 text-[12px]" style={{ color: "var(--text-faint)" }}>
+                      <span className="ml-2 text-xs" style={{ color: "var(--text-faint)" }}>
                         {c.code}
                       </span>
                       {!c.isActive ? (
                         <Badge className="ml-2">Inactive</Badge>
                       ) : null}
                       {c.shopName ? (
-                        <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                        <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                           {c.shopName}
                         </span>
                       ) : null}
@@ -145,7 +145,7 @@ export default async function CustomersPage({
                         {c.phone}
                       </a>
                       {c.city ? (
-                        <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                        <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                           {c.city}
                         </span>
                       ) : null}
@@ -153,7 +153,7 @@ export default async function CustomersPage({
                     <Td align="center">
                       {c.loans.length}
                       {activeLoans ? (
-                        <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                        <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                           {activeLoans} active
                         </span>
                       ) : null}

@@ -144,11 +144,11 @@ export default async function DashboardPage() {
               ["Expenses to date", formatMoney(summary.expensesPaise), false],
             ].map(([label, value, emphasis]) => (
               <div key={label as string} className="flex items-baseline justify-between gap-4 px-5 py-3">
-                <dt className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                <dt className="text-sm" style={{ color: "var(--text-muted)" }}>
                   {label}
                 </dt>
                 <dd
-                  className="text-[14px] font-semibold tnum"
+                  className="text-base font-semibold tnum"
                   style={emphasis ? { color: "var(--tone-money)" } : undefined}
                 >
                   {value}
@@ -194,14 +194,14 @@ export default async function DashboardPage() {
                       <Link href={`/loans/${row.loanId}`} className="font-medium hover:underline">
                         {row.loan.customer.name}
                       </Link>
-                      <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                      <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         {row.loan.code} · EMI {row.seq}
                       </span>
                     </Td>
                     <Td>
                       <span className="block">{formatDate(row.dueDate)}</span>
                       <span
-                        className="text-[12px]"
+                        className="text-xs"
                         style={{ color: row.overdue ? "var(--tone-risk)" : "var(--text-faint)" }}
                       >
                         {dueLabel(row.dueDate, today)}
@@ -257,7 +257,7 @@ export default async function DashboardPage() {
                       <Link href={`/loans/${p.loanId}`} className="font-medium hover:underline">
                         {p.loan.customer.name}
                       </Link>
-                      <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                      <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         {p.loan.code}
                       </span>
                     </Td>

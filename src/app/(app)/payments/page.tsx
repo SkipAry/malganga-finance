@@ -146,7 +146,7 @@ export default async function PaymentsPage({
                       {p.loan.code}
                     </Link>
                     {p.installment ? (
-                      <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                      <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         EMI {p.installment.seq}
                       </span>
                     ) : null}
@@ -155,10 +155,10 @@ export default async function PaymentsPage({
                     {formatMoney(p.amountPaise)}
                   </Td>
                   <Td><ModeBadge mode={p.mode} /></Td>
-                  <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                  <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                     {p.reference ?? "—"}
                   </Td>
-                  <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                  <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                     {p.recordedBy?.name ?? "—"}
                   </Td>
                   {isAdmin ? (

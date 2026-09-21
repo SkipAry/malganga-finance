@@ -115,14 +115,14 @@ export default async function CollectionsPage({
                     <Link href={`/loans/${row.loanId}`} className="hover:underline">
                       {row.loan.code}
                     </Link>
-                    <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                    <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                       EMI {row.seq}
                     </span>
                   </Td>
                   <Td>
                     {formatDate(row.dueDate)}
                     <span
-                      className="block text-[12px]"
+                      className="block text-xs"
                       style={{ color: row.overdue ? "var(--tone-risk)" : "var(--text-faint)" }}
                     >
                       {dueLabel(row.dueDate, today)}

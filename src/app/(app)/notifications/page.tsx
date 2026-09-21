@@ -139,7 +139,7 @@ export default async function NotificationsPage({
                     <Link href={`/customers/${n.customerId}`} className="font-medium hover:underline">
                       {n.customer.name}
                     </Link>
-                    <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                    <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                       {n.customer.phone}
                     </span>
                   </Td>
@@ -147,25 +147,25 @@ export default async function NotificationsPage({
                     <Link href={`/loans/${n.loanId}`} className="hover:underline">
                       {n.loan.code}
                     </Link>
-                    <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                    <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                       EMI {n.installment.seq} · due {formatDate(n.installment.dueDate)}
                     </span>
                   </Td>
-                  <Td className="text-[13px]">
+                  <Td className="text-sm">
                     {NOTIFICATION_KIND_LABEL[n.kind as NotificationKind] ?? n.kind}
-                    <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                    <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                       {n.channel}
                     </span>
                   </Td>
-                  <Td className="text-[13px]">
+                  <Td className="text-sm">
                     {formatDate(n.scheduledFor)}
                     {n.sentAt ? (
-                      <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                      <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         sent {formatDateTime(n.sentAt)}
                       </span>
                     ) : null}
                   </Td>
-                  <Td className="max-w-sm text-[12.5px]" style={{ color: "var(--text-muted)" }}>
+                  <Td className="max-w-sm text-sm" style={{ color: "var(--text-muted)" }}>
                     <span className="line-clamp-2">{n.message}</span>
                     {n.error ? <span className="block text-ontone-risk">{n.error}</span> : null}
                   </Td>

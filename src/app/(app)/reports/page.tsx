@@ -114,10 +114,10 @@ export default async function ReportsPage({
             ["Investor capital held", formatMoney(summary.investorCapitalPaise - summary.investorWithdrawnPaise)],
           ].map(([label, value]) => (
             <div key={label} className="flex items-baseline justify-between gap-4 border-b px-5 py-3">
-              <dt className="text-[13.5px]" style={{ color: "var(--text-muted)" }}>
+              <dt className="text-sm" style={{ color: "var(--text-muted)" }}>
                 {label}
               </dt>
-              <dd className="text-[14px] font-semibold tnum">{value}</dd>
+              <dd className="text-base font-semibold tnum">{value}</dd>
             </div>
           ))}
         </dl>
@@ -150,7 +150,7 @@ export default async function ReportsPage({
                     <Link href={`/customers/${c.id}`} className="font-medium hover:underline">
                       {c.name}
                     </Link>
-                    <span className="ml-2 text-[12px]" style={{ color: "var(--text-faint)" }}>
+                    <span className="ml-2 text-xs" style={{ color: "var(--text-faint)" }}>
                       {c.code}
                     </span>
                   </Td>

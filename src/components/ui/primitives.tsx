@@ -20,7 +20,10 @@ export function Card({
     <div
       {...rest}
       className={cx(
-        "rounded-[var(--radius-card)] border bg-[var(--bg-elev)] shadow-[var(--shadow-card)]",
+        // min-w-0: as a grid/flex item a card defaults to min-width:auto, which
+        // lets a wide table stretch it past the viewport instead of letting the
+        // table's own overflow-x-auto scroll.
+        "min-w-0 rounded-[var(--radius-card)] border bg-[var(--bg-elev)] shadow-[var(--shadow-card)]",
         className,
       )}
       style={{ borderColor: "var(--border)", ...rest.style }}
@@ -42,9 +45,9 @@ export function CardHeader({
   return (
     <div className="flex items-start justify-between gap-4 border-b px-5 py-4">
       <div className="min-w-0">
-        <h2 className="truncate text-[15px] font-semibold tracking-[-0.01em]">{title}</h2>
+        <h2 className="truncate text-lg font-semibold tracking-[-0.01em]">{title}</h2>
         {subtitle ? (
-          <p className="mt-0.5 text-[13px]" style={{ color: "var(--text-muted)" }}>
+          <p className="mt-0.5 text-sm" style={{ color: "var(--text-muted)" }}>
             {subtitle}
           </p>
         ) : null}
@@ -66,7 +69,7 @@ export function PageHeader({
   return (
     <header className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
-        <h1 className="text-[26px] font-semibold leading-tight tracking-[-0.02em]">{title}</h1>
+        <h1 className="text-2xl font-semibold leading-tight tracking-[-0.02em]">{title}</h1>
         {subtitle ? (
           <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
             {subtitle}
@@ -83,9 +86,9 @@ export function PageHeader({
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const buttonBase =
-  "inline-flex items-center justify-center gap-2 rounded-lg text-[13.5px] font-medium transition-[background,border-color,opacity,transform] duration-150 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap";
+  "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-[background,border-color,opacity,transform] duration-150 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap";
 
-const buttonSizes = { sm: "h-8 px-3", md: "h-9.5 px-4 py-2", lg: "h-11 px-5 text-sm" };
+const buttonSizes = { sm: "h-8 px-3", md: "h-9.5 px-4 py-2", lg: "h-11 px-5 text-base" };
 
 function variantClass(variant: ButtonVariant): string {
   switch (variant) {
@@ -161,17 +164,17 @@ export function Field({
 }) {
   return (
     <div className={cx("flex flex-col gap-1.5", className)}>
-      <label htmlFor={htmlFor} className="text-[13px] font-medium">
+      <label htmlFor={htmlFor} className="text-sm font-medium">
         {label}
         {required ? <span className="ml-0.5 text-ontone-risk">*</span> : null}
       </label>
       {children}
       {error ? (
-        <p role="alert" className="text-[12.5px] text-ontone-risk">
+        <p role="alert" className="text-sm text-ontone-risk">
           {error}
         </p>
       ) : hint ? (
-        <p className="text-[12.5px]" style={{ color: "var(--text-faint)" }}>
+        <p className="text-sm" style={{ color: "var(--text-faint)" }}>
           {hint}
         </p>
       ) : null}
@@ -180,7 +183,7 @@ export function Field({
 }
 
 const controlClass =
-  "h-9.5 w-full rounded-lg border bg-[var(--bg-elev)] px-3 text-[14px] outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-faint)] focus:border-brand-500 disabled:opacity-60";
+  "h-9.5 w-full rounded-lg border bg-[var(--bg-elev)] px-3 text-base outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-faint)] focus:border-brand-500 disabled:opacity-60";
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className, ...rest }, ref) {
@@ -236,7 +239,7 @@ export function Badge({
   return (
     <span
       className={cx(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] font-medium",
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
         toneClass[tone],
         className,
       )}
@@ -257,9 +260,9 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-      <p className="text-[15px] font-medium">{title}</p>
+      <p className="text-lg font-medium">{title}</p>
       {description ? (
-        <p className="mt-1 max-w-sm text-[13.5px]" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1 max-w-sm text-sm" style={{ color: "var(--text-muted)" }}>
           {description}
         </p>
       ) : null}
@@ -279,7 +282,7 @@ export function Note({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cx("rounded-lg px-3.5 py-3 text-[13px] leading-relaxed", toneClass[tone])}>
+    <div className={cx("rounded-lg px-3.5 py-3 text-sm leading-relaxed", toneClass[tone])}>
       {title ? <p className="mb-0.5 font-semibold">{title}</p> : null}
       {children}
     </div>
@@ -291,7 +294,7 @@ export function Note({
 export function Table({ children }: { children: React.ReactNode }) {
   return (
     <div className="w-full overflow-x-auto">
-      <table className="w-full border-collapse text-[13.5px]">{children}</table>
+      <table className="w-full border-collapse text-sm">{children}</table>
     </div>
   );
 }
@@ -308,7 +311,7 @@ export function Th({
   return (
     <th
       className={cx(
-        "border-b px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-[0.05em]",
+        "border-b px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.05em]",
         align === "right" && "text-right",
         align === "center" && "text-center",
         align === "left" && "text-left",
@@ -373,10 +376,10 @@ export function DescList({ items }: { items: Array<[string, React.ReactNode]> })
     <dl className="grid gap-x-6 gap-y-3.5 sm:grid-cols-2">
       {items.map(([label, value]) => (
         <div key={label} className="min-w-0">
-          <dt className="text-[12px] uppercase tracking-[0.04em]" style={{ color: "var(--text-faint)" }}>
+          <dt className="text-xs uppercase tracking-[0.04em]" style={{ color: "var(--text-faint)" }}>
             {label}
           </dt>
-          <dd className="mt-0.5 text-[14px] font-medium break-words">{value}</dd>
+          <dd className="mt-0.5 text-base font-medium break-words">{value}</dd>
         </div>
       ))}
     </dl>

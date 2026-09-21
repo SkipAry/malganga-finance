@@ -52,7 +52,7 @@ export function PaymentForm({
       <input type="hidden" name="loanId" value={loanId} />
       <FormError message={e._form} />
       {state?.message ? (
-        <p className="tone-chip tone-money rounded-lg px-3 py-2 text-[12.5px] font-medium">
+        <p className="tone-chip tone-money rounded-lg px-3 py-2 text-sm font-medium">
           {state.message}
         </p>
       ) : null}

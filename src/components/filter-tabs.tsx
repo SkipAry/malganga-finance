@@ -57,7 +57,7 @@ export function FilterTabs({
             href={hrefFor(option.value)}
             aria-current={active ? "page" : undefined}
             className={cx(
-              "rounded-lg px-3 py-1.5 text-[13px] transition-colors",
+              "rounded-lg px-3 py-1.5 text-sm transition-colors",
               variant === "bordered" && "border",
               active ? "font-medium" : "hover:bg-[var(--bg-sunken)]",
             )}
@@ -65,7 +65,7 @@ export function FilterTabs({
           >
             {option.label}
             {option.count !== undefined ? (
-              <span className="ml-1.5 text-[12px]" style={{ color: "var(--text-faint)" }}>
+              <span className="ml-1.5 text-xs" style={{ color: "var(--text-faint)" }}>
                 {option.count}
               </span>
             ) : null}

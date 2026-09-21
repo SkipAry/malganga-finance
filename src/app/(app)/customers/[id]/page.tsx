@@ -159,7 +159,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                           <Link href={`/loans/${loan.id}`} className="font-medium hover:underline">
                             {loan.code}
                           </Link>
-                          <span className="block text-[12px]" style={{ color: "var(--text-faint)" }}>
+                          <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                             {loan.tenure} × {loan.frequency === "WEEKLY" ? "weekly" : "monthly"}
                           </span>
                         </Td>
@@ -178,7 +178,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           <Card>
             <CardHeader title="KYC & documents" subtitle="Identity proof, Shop Act licence and photographs" />
             {customer.documents.length === 0 ? (
-              <p className="px-5 py-4 text-[13.5px]" style={{ color: "var(--text-muted)" }}>
+              <p className="px-5 py-4 text-sm" style={{ color: "var(--text-muted)" }}>
                 No documents on file yet.
               </p>
             ) : (
@@ -186,10 +186,10 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 {customer.documents.map((doc) => (
                   <li key={doc.id} className="flex items-center gap-3 px-5 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13.5px] font-medium">
+                      <p className="text-sm font-medium">
                         {DOCUMENT_KIND_LABEL[doc.kind as DocumentKind] ?? doc.kind}
                       </p>
-                      <p className="text-[12.5px]" style={{ color: "var(--text-muted)" }}>
+                      <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                         {doc.number ? `No. ${doc.number}` : "No number recorded"}
                         {doc.fileName ? ` · ${doc.fileName}` : ""}
                       </p>
@@ -198,7 +198,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                       <a
                         href={doc.fileData}
                         download={doc.fileName ?? "document"}
-                        className="text-[13px] font-medium text-ontone-brand hover:underline"
+                        className="text-sm font-medium text-ontone-brand hover:underline"
                       >
                         Download
                       </a>
@@ -235,13 +235,13 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                 {customer.collaterals.map((col) => (
                   <li key={col.id} className="flex items-center gap-3 px-5 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-[13.5px] font-medium">
+                      <p className="text-sm font-medium">
                         {ASSET_TYPE_LABEL[col.assetType as AssetType] ?? col.assetType}
                         <span className="ml-2 font-normal tnum" style={{ color: "var(--text-muted)" }}>
                           {formatMoney(col.valuePaise)}
                         </span>
                       </p>
-                      <p className="text-[12.5px]" style={{ color: "var(--text-muted)" }}>
+                      <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                         {col.description}
                       </p>
                     </div>
@@ -298,7 +298,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                   ]}
                 />
               ) : (
-                <p className="text-[13.5px]" style={{ color: "var(--text-muted)" }}>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                   No referral recorded.
                 </p>
               )}
@@ -308,7 +308,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
           {customer.notes ? (
             <Card>
               <CardHeader title="Notes" />
-              <p className="whitespace-pre-wrap p-5 text-[13.5px] leading-relaxed">{customer.notes}</p>
+              <p className="whitespace-pre-wrap p-5 text-sm leading-relaxed">{customer.notes}</p>
             </Card>
           ) : null}
         </div>

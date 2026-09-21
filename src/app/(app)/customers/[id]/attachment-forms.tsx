@@ -11,7 +11,7 @@ import { ASSET_TYPES, ASSET_TYPE_LABEL, DOCUMENT_KINDS, DOCUMENT_KIND_LABEL } fr
 function Saved({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p className="tone-chip tone-money rounded-lg px-3 py-2 text-[12.5px] font-medium">
+    <p className="tone-chip tone-money rounded-lg px-3 py-2 text-sm font-medium">
       {message}
     </p>
   );
@@ -56,7 +56,7 @@ export function DocumentForm({ customerId }: { customerId: string }) {
           name="file"
           type="file"
           accept="image/*,application/pdf"
-          className="w-full text-[13px] file:mr-3 file:rounded-lg file:border file:bg-[var(--bg-sunken)] file:px-3 file:py-1.5 file:text-[13px]"
+          className="w-full text-sm file:mr-3 file:rounded-lg file:border file:bg-[var(--bg-sunken)] file:px-3 file:py-1.5 file:text-sm"
         />
       </Field>
 

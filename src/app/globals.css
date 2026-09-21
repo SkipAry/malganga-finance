@@ -48,6 +48,20 @@
   --color-ontone-risk: var(--tone-risk);
   --color-ontone-brand: var(--tone-brand);
 
+  /*
+   * Type scale, calibrated for a dense ledger UI rather than a marketing
+   * page: sm is 13px (the dominant table/body size) and base is 14px, both
+   * one step below the Tailwind defaults. Eight steps, no in-between values.
+   */
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 26px;
+  --text-3xl: 32px;
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", monospace;
 

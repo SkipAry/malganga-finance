@@ -80,7 +80,7 @@ export default async function InvestorsPage() {
                     <Link href={`/investors/${r.id}`} className="font-medium hover:underline">
                       {r.name}
                     </Link>
-                    <span className="ml-2 text-[12px]" style={{ color: "var(--text-faint)" }}>
+                    <span className="ml-2 text-xs" style={{ color: "var(--text-faint)" }}>
                       {r.code}
                     </span>
                     {activeMap.get(r.id) === false ? <Badge className="ml-2">Inactive</Badge> : null}

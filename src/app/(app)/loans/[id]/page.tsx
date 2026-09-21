@@ -170,7 +170,7 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
                       <Td>
                         {formatDate(inst.dueDate)}
                         {overdue ? (
-                          <span className="block text-[11.5px] text-ontone-risk">
+                          <span className="block text-xs text-ontone-risk">
                             {dueLabel(inst.dueDate, today)}
                           </span>
                         ) : null}
@@ -233,10 +233,10 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
                         {formatMoney(p.amountPaise)}
                       </Td>
                       <Td><ModeBadge mode={p.mode} /></Td>
-                      <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                      <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                         {p.reference ?? "—"}
                       </Td>
-                      <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                      <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                         {p.recordedBy?.name ?? "—"}
                       </Td>
                       {isAdmin ? (
@@ -292,7 +292,7 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
                 ]}
               />
               {loan.notes ? (
-                <p className="mt-4 whitespace-pre-wrap border-t pt-4 text-[13px]" style={{ color: "var(--text-muted)" }}>
+                <p className="mt-4 whitespace-pre-wrap border-t pt-4 text-sm" style={{ color: "var(--text-muted)" }}>
                   {loan.notes}
                 </p>
               ) : null}

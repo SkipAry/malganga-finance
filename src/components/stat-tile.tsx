@@ -71,14 +71,14 @@ export function StatTile({
   const body = (
     <>
       <p
-        className="text-[12px] font-medium uppercase tracking-[0.06em]"
+        className="text-xs font-medium uppercase tracking-[0.06em]"
         style={{ color: "var(--text-faint)" }}
       >
         {label}
       </p>
 
       <p
-        className="mt-2 text-[28px] font-semibold leading-none tracking-[-0.02em] tnum"
+        className="mt-2 text-2xl font-semibold leading-none tracking-[-0.02em] tnum"
         style={{ color: tone === "neutral" ? undefined : accent[tone] }}
       >
         {value}
@@ -86,7 +86,7 @@ export function StatTile({
 
       {status ? (
         <p
-          className="mt-2.5 inline-flex items-center gap-1.5 text-[13px] font-medium"
+          className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-medium"
           style={{ color: accent[tone] }}
         >
           <StatusGlyph tone={tone} />
@@ -95,7 +95,7 @@ export function StatTile({
       ) : null}
 
       {hint ? (
-        <p className="mt-1.5 text-[13px] leading-snug" style={{ color: "var(--text-muted)" }}>
+        <p className="mt-1.5 text-sm leading-snug" style={{ color: "var(--text-muted)" }}>
           {hint}
         </p>
       ) : null}

@@ -120,7 +120,7 @@ export default async function PortfolioPage() {
                       {formatMoney(t.amountPaise)}
                     </Td>
                     <Td><ModeBadge mode={t.mode} /></Td>
-                    <Td className="text-[13px]" style={{ color: "var(--text-muted)" }}>
+                    <Td className="text-sm" style={{ color: "var(--text-muted)" }}>
                       {t.note ?? "—"}
                     </Td>
                   </Tr>
