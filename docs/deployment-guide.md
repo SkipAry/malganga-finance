@@ -119,5 +119,20 @@ single hardware fault away from being unreconstructable.
 - **Money is `Int` (paise)**, so one row caps near ₹2.14 crore. Aggregates are
   summed by Postgres as `bigint` and do not overflow. Move the columns to
   `BigInt` if single loans ever approach that.
-- **KYC scans are base64 in the `Document` table**, capped at 4 MB each. This
-  will bloat the database; move to Supabase Storage when scans become routine.
+- **KYC scans are base64 in the `Document` table**, capped at 3 MB each.
+
+  The cap is driven by Vercel, not by us: a function request body cannot exceed
+  4.5 MB, and that is an infrastructure limit no `bodySizeLimit` setting can
+  raise. 3 MB leaves room for multipart overhead so an oversized file gets the
+  app's own error rather than an opaque 413.
+
+  This will bite in the field. Phone cameras routinely produce 3-6 MB photos,
+  so agents will hit the limit photographing an Aadhaar card. Two fixes, in
+  order of effort:
+
+  1. **Downscale in the browser before upload** (canvas resize to ~1600px,
+     JPEG q0.8). Turns a 5 MB photo into a few hundred KB, uploads far faster
+     on a field connection, and shrinks the database. Self-contained.
+  2. **Upload straight to Supabase Storage** from the browser and keep only the
+     object key in Postgres. Removes the limit entirely and stops the database
+     carrying binary data. The better long-term answer.

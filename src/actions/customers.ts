@@ -80,9 +80,12 @@ export async function addDocument(_prev: FormState, formData: FormData): Promise
   let fileName: string | null = null;
 
   if (file instanceof File && file.size > 0) {
-    // 4 MB ceiling: these are phone photos of documents, not archives.
-    if (file.size > 4 * 1024 * 1024) {
-      return { errors: { file: "File must be 4 MB or smaller" } };
+    // 3 MB ceiling. The real constraint is Vercel's 4.5 MB request-body limit,
+    // which multipart overhead and the other form fields eat into; staying
+    // well under it means an over-sized upload gets this message rather than a
+    // platform 413 with no explanation.
+    if (file.size > 3 * 1024 * 1024) {
+      return { errors: { file: "File must be 3 MB or smaller" } };
     }
     const buffer = Buffer.from(await file.arrayBuffer());
     fileData = `data:${file.type || "application/octet-stream"};base64,${buffer.toString("base64")}`;

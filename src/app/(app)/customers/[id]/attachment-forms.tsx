@@ -50,7 +50,7 @@ export function DocumentForm({ customerId }: { customerId: string }) {
         </Field>
       </div>
 
-      <Field label="Scan or photo" htmlFor="doc-file" error={e.file} hint="JPG, PNG or PDF, up to 4 MB">
+      <Field label="Scan or photo" htmlFor="doc-file" error={e.file} hint="JPG, PNG or PDF, up to 3 MB">
         <input
           id="doc-file"
           name="file"
