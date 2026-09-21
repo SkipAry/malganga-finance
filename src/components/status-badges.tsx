@@ -27,12 +27,7 @@ export function InstallmentStatusBadge({
     return <Badge tone="risk">{status === "PARTIAL" ? "Part paid · overdue" : "Overdue"}</Badge>;
   }
   const label = INSTALLMENT_STATUS_LABEL[status as InstallmentStatus] ?? status;
-  const tone =
-    status === "PAID" || status === "DEDUCTED_AT_DISBURSAL"
-      ? "money"
-      : status === "PARTIAL"
-        ? "warn"
-        : "neutral";
+  const tone = status === "PAID" ? "money" : status === "PARTIAL" ? "warn" : "neutral";
   return <Badge tone={tone}>{label}</Badge>;
 }
 

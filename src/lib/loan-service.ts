@@ -6,7 +6,7 @@
 import type { Prisma, PrismaClient } from "@prisma/client";
 
 import { startOfDay } from "./dates";
-import { buildSchedule, disbursementOf, settlesFirstInstallment, type ScheduleInput } from "./emi";
+import { buildSchedule, disbursementOf, type ScheduleInput } from "./emi";
 import type { LoanFrequency, LoanStructure, UpfrontMode } from "./enums";
 import { buildInstallmentReminders } from "./notify";
 
@@ -47,8 +47,9 @@ export function scheduleInputFor(input: CreateLoanInput): ScheduleInput {
 
 /**
  * Creates the loan, its full EMI schedule and the reminder queue in one
- * transaction. Under SETTLES_EMI_1, installment 1 is marked settled at
- * disbursement and never enters the reminder queue.
+ * transaction. Any upfront withholding is a charge against the payout, not a
+ * prepayment, so every installment is collectable and every installment gets
+ * reminders.
  */
 export async function createLoanWithSchedule(tx: Tx, input: CreateLoanInput) {
   const schedule = buildSchedule(scheduleInputFor(input));
@@ -65,8 +66,6 @@ export async function createLoanWithSchedule(tx: Tx, input: CreateLoanInput) {
       "The upfront deduction equals or exceeds the loan amount - nothing would reach the customer",
     );
   }
-
-  const settlesFirst = settlesFirstInstallment(input.upfrontMode);
 
   const loan = await tx.loan.create({
     data: {
@@ -85,28 +84,23 @@ export async function createLoanWithSchedule(tx: Tx, input: CreateLoanInput) {
       netDisbursedPaise: disbursement.netPaise,
       notes: input.notes ?? null,
       installments: {
-        create: schedule.rows.map((row) => {
-          const settledUpfront = settlesFirst && row.seq === 1;
-          return {
-            seq: row.seq,
-            dueDate: row.dueDate,
-            principalPaise: row.principalPaise,
-            interestPaise: row.interestPaise,
-            totalPaise: row.totalPaise,
-            paidPaise: settledUpfront ? row.totalPaise : 0,
-            status: settledUpfront ? "DEDUCTED_AT_DISBURSAL" : "PENDING",
-            paidOn: settledUpfront ? startOfDay(input.disbursedOn) : null,
-          };
-        }),
+        create: schedule.rows.map((row) => ({
+          seq: row.seq,
+          dueDate: row.dueDate,
+          principalPaise: row.principalPaise,
+          interestPaise: row.interestPaise,
+          totalPaise: row.totalPaise,
+        })),
       },
     },
     include: { installments: true, customer: true },
   });
 
-  const reminders = buildInstallmentReminders(
-    loan.installments.filter((i) => i.status !== "DEDUCTED_AT_DISBURSAL"),
-    { loanId: loan.id, customerId: loan.customerId, customerName: loan.customer.name },
-  );
+  const reminders = buildInstallmentReminders(loan.installments, {
+    loanId: loan.id,
+    customerId: loan.customerId,
+    customerName: loan.customer.name,
+  });
   if (reminders.length) await tx.notification.createMany({ data: reminders });
 
   return loan;
@@ -143,7 +137,7 @@ export async function applyPayment(
   });
   if (!installments.length) throw new Error("Loan has no schedule");
 
-  const open = installments.filter((i) => i.status !== "PAID" && i.status !== "WAIVED" && i.status !== "DEDUCTED_AT_DISBURSAL");
+  const open = installments.filter((i) => i.status !== "PAID" && i.status !== "WAIVED");
 
   // Named installment gets served first, then the rest oldest-first.
   const order = args.installmentId
@@ -230,7 +224,7 @@ export async function reversePayment(tx: Tx, paymentId: string): Promise<void> {
 
   // Reset then replay: cheaper to reason about than un-picking one allocation.
   for (const inst of installments) {
-    if (inst.status === "DEDUCTED_AT_DISBURSAL" || inst.status === "WAIVED") continue;
+    if (inst.status === "WAIVED") continue;
     await tx.installment.update({
       where: { id: inst.id },
       data: { paidPaise: 0, status: "PENDING", paidOn: null },
@@ -240,7 +234,7 @@ export async function reversePayment(tx: Tx, paymentId: string): Promise<void> {
   let pool = payments.reduce((a, p) => a + p.amountPaise, 0);
   for (const inst of installments) {
     if (pool <= 0) break;
-    if (inst.status === "DEDUCTED_AT_DISBURSAL" || inst.status === "WAIVED") continue;
+    if (inst.status === "WAIVED") continue;
     const applied = Math.min(inst.totalPaise, pool);
     pool -= applied;
     await tx.installment.update({
@@ -265,9 +259,7 @@ export type InstallmentLike = {
 
 /** Overdue is derived, never stored — so it is correct without a nightly job. */
 export function isOverdue(inst: InstallmentLike, today = new Date()): boolean {
-  if (inst.status === "PAID" || inst.status === "WAIVED" || inst.status === "DEDUCTED_AT_DISBURSAL") {
-    return false;
-  }
+  if (inst.status === "PAID" || inst.status === "WAIVED") return false;
   return startOfDay(inst.dueDate) < startOfDay(today);
 }
 

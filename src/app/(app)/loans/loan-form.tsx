@@ -286,9 +286,8 @@ export function LoanForm({
               {marginWarning ? (
                 <div className="px-5 pb-5">
                   <Note tone="risk" title="This loan earns nothing">
-                    On these terms the business collects exactly what it pays out. This is what scope
-                    section 4.1 says literally; switch the upfront deduction to “deduct one EMI as an
-                    upfront charge”, or use an interest-bearing structure, to earn a return.
+                    On these terms the business collects exactly what it pays out. Deduct one EMI as
+                    an upfront charge, or use an interest-bearing structure, to earn a return.
                   </Note>
                 </div>
               ) : null}
@@ -318,27 +317,17 @@ export function LoanForm({
                   </tr>
                 </thead>
                 <tbody>
-                  {preview.schedule.rows.map((row) => {
-                    const settled = upfrontMode === "SETTLES_EMI_1" && row.seq === 1;
-                    return (
-                      <Tr key={row.seq}>
-                        <Td className="tnum" style={settled ? { opacity: 0.55 } : undefined}>
-                          {row.seq}
-                        </Td>
-                        <Td style={settled ? { opacity: 0.55 } : undefined}>
-                          {formatDate(row.dueDate)}
-                          {settled ? (
-                            <span className="ml-1 text-[11.5px]">(upfront)</span>
-                          ) : null}
-                        </Td>
-                        <Td align="right">{formatMoney(row.principalPaise)}</Td>
-                        <Td align="right">{formatMoney(row.interestPaise)}</Td>
-                        <Td align="right" className="font-semibold">
-                          {formatMoney(row.totalPaise)}
-                        </Td>
-                      </Tr>
-                    );
-                  })}
+                  {preview.schedule.rows.map((row) => (
+                    <Tr key={row.seq}>
+                      <Td className="tnum">{row.seq}</Td>
+                      <Td>{formatDate(row.dueDate)}</Td>
+                      <Td align="right">{formatMoney(row.principalPaise)}</Td>
+                      <Td align="right">{formatMoney(row.interestPaise)}</Td>
+                      <Td align="right" className="font-semibold">
+                        {formatMoney(row.totalPaise)}
+                      </Td>
+                    </Tr>
+                  ))}
                 </tbody>
               </Table>
             </div>

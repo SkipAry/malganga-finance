@@ -32,27 +32,42 @@ function flatUpfrontExample() {
   assert.equal(daysBetween(schedule.rows[0].dueDate, schedule.rows[1].dueDate), 7);
   assert.equal(daysBetween(firstEmiOn, schedule.lastEmiOn), 13 * 7);
 
-  // Reading A - the scope wording taken literally: EMI 1 is settled by the
-  // withholding and only 13 EMIs are collected. It nets the lender nothing.
-  const literal = disbursementOf(toPaise(100000), schedule, "SETTLES_EMI_1", 14, "WEEKLY");
-  assert.equal(literal.netPaise, toPaise(93000), "customer receives 93,000 in hand");
-  assert.equal(literal.collectPaise, toPaise(93000), "13 remaining EMIs total 93,000");
-  assert.equal(literal.marginPaise, 0, "the literal reading of scope 4.1 earns nothing");
-
-  // Reading B - the withheld EMI is an upfront charge and the full schedule is
-  // still collected. This is the only reading with a viable margin.
+  // Confirmed rule: the withheld EMI is an upfront charge and the full
+  // schedule is still collected on top of it.
   const charged = disbursementOf(toPaise(100000), schedule, "EXTRA_CHARGE", 14, "WEEKLY");
-  assert.equal(charged.netPaise, toPaise(93000));
-  assert.equal(charged.collectPaise, toPaise(100000));
-  assert.equal(charged.marginPaise, toPaise(7000));
+  assert.equal(charged.upfrontPaise, toPaise(7000), "one EMI is withheld");
+  assert.equal(charged.netPaise, toPaise(93000), "customer receives 93,000 in hand");
+  assert.equal(charged.collectPaise, toPaise(100000), "all 14 EMIs remain collectable");
+  assert.equal(charged.marginPaise, toPaise(7000), "lender earns the withheld EMI");
   assert.ok(
     charged.effectiveMonthlyRatePct > 2.2 && charged.effectiveMonthlyRatePct < 2.5,
     `expected ~2.33%/month, got ${charged.effectiveMonthlyRatePct}`,
   );
 
+  // Without the upfront charge a flat schedule returns exactly what it lent -
+  // the loan form warns on this, so it must stay detectable.
   const none = disbursementOf(toPaise(100000), schedule, "NONE", 14, "WEEKLY");
   assert.equal(none.netPaise, toPaise(100000), "no withholding pays out in full");
   assert.equal(none.marginPaise, 0, "a flat schedule with no withholding earns nothing");
+}
+
+function everyInstallmentStaysCollectable() {
+  // Nothing is pre-settled by the withholding: the customer still owes all N.
+  const schedule = buildSchedule({
+    principalPaise: toPaise(100000),
+    interestRatePct: 3,
+    tenure: 14,
+    frequency: "WEEKLY",
+    structure: "FLAT_UPFRONT",
+    firstEmiOn,
+  });
+  const charged = disbursementOf(toPaise(100000), schedule, "EXTRA_CHARGE", 14, "WEEKLY");
+  assert.equal(charged.collectPaise, schedule.totalPayablePaise);
+  assert.equal(
+    charged.marginPaise,
+    schedule.totalPayablePaise - charged.netPaise,
+    "margin is everything collected above the cash advanced",
+  );
 }
 
 function scheduleAlwaysSumsToPayable() {
@@ -143,6 +158,7 @@ function moneyFormatting() {
 
 const checks = [
   flatUpfrontExample,
+  everyInstallmentStaysCollectable,
   scheduleAlwaysSumsToPayable,
   interestOnlyShape,
   monthEndClamping,

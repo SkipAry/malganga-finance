@@ -1,16 +1,16 @@
 /**
  * EMI schedule engine.
  *
- * Scope doc section 4.1 gives exactly one worked example and section 5 item 4
- * asks for the general rule. Until that answer arrives, FLAT_UPFRONT is
- * calibrated to reproduce the worked example exactly:
+ * FLAT_UPFRONT reproduces the worked example in scope section 4.1 exactly:
  *
  *   ₹1,00,000 over 14 weekly EMIs -> 13 x ₹7,000 + 1 x ₹9,000,
- *   first EMI withheld, so ₹93,000 reaches the customer.
+ *   one EMI withheld at disbursement, so ₹93,000 reaches the customer and
+ *   the full ₹1,00,000 is collected back (see UPFRONT_MODES).
  *
- * The knobs that decide that shape (`roundToPaise`, and the choice of
- * structure) are inputs, not constants, so the rule can be re-tuned from
- * Settings once Malganga confirms it, without touching this file.
+ * The EMI amount is the loan divided by the tenure, rounded DOWN to
+ * `roundToPaise`, with the remainder loaded onto the final EMI. That step is
+ * an input rather than a constant because the general rounding rule behind
+ * the example is still unconfirmed.
  */
 
 import { addDays, addMonths, startOfDay } from "./dates";
@@ -165,7 +165,7 @@ export function buildSchedule(input: ScheduleInput): Schedule {
  * `netPaise`    - cash actually handed to the customer.
  * `collectPaise`- what the schedule will still bring in after disbursement.
  * `marginPaise` - the lender's gross return (collect - net). Surfaced in the UI
- *                 because a FLAT_UPFRONT loan under SETTLES_EMI_1 returns
+ *                 because a FLAT_UPFRONT loan with no upfront charge returns
  *                 exactly what was advanced, and that must not be silent.
  */
 export type Disbursement = {
@@ -183,26 +183,16 @@ export function disbursementOf(
   tenure: number,
   frequency: LoanFrequency,
 ): Disbursement {
-  const firstEmi = schedule.rows[0].totalPaise;
-  const upfrontPaise = upfrontMode === "NONE" ? 0 : firstEmi;
+  const upfrontPaise = upfrontMode === "EXTRA_CHARGE" ? schedule.rows[0].totalPaise : 0;
   const netPaise = principalPaise - upfrontPaise;
 
-  // SETTLES_EMI_1 retires installment 1; EXTRA_CHARGE leaves the whole
-  // schedule collectable on top of the withheld amount.
-  const collectPaise =
-    upfrontMode === "SETTLES_EMI_1"
-      ? schedule.totalPayablePaise - firstEmi
-      : schedule.totalPayablePaise;
-
+  // The withholding is a charge, not a prepayment: every installment stays
+  // collectable on top of it.
+  const collectPaise = schedule.totalPayablePaise;
   const marginPaise = collectPaise - netPaise;
   const months = periodsToMonths(tenure, frequency);
   const effectiveMonthlyRatePct =
     netPaise > 0 && months > 0 ? (marginPaise / netPaise / months) * 100 : 0;
 
   return { netPaise, collectPaise, marginPaise, upfrontPaise, effectiveMonthlyRatePct };
-}
-
-/** True when installment 1 is settled by the withholding rather than collected. */
-export function settlesFirstInstallment(upfrontMode: UpfrontMode): boolean {
-  return upfrontMode === "SETTLES_EMI_1";
 }

@@ -111,8 +111,19 @@ not just hidden in the nav.
 with history is deactivated; only records with no history are hard-deleted.
 Reversing a receipt rebuilds the affected schedule by replaying what remains.
 
+## Loan economics
+
+One EMI is withheld at disbursement as the lender's charge, and the full
+schedule is still collected on top of it. On the scope example: lend
+₹1,00,000, hand over ₹93,000, collect ₹1,00,000 — a ₹7,000 margin, about
+2.33% per month on the cash advanced. `npm test` asserts this.
+
+Loans that carry their own interest (`INTEREST_ONLY`, `INTEREST_PRINCIPAL`)
+withhold nothing at payout. The disbursement form shows margin and effective
+rate live and warns whenever a configuration would earn nothing.
+
 ## Open scope questions
 
-Twelve points in section 5 of the scope document are unanswered, and one of them
-changes the economics of every loan. See
+Section 5 of the scope document raised twelve points. The one that changed loan
+economics is settled; the rest carry stated assumptions. See
 [docs/scope-open-questions.md](docs/scope-open-questions.md) before sign-off.

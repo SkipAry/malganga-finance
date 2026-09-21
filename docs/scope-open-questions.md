@@ -4,12 +4,16 @@ Status of the twelve confirmations requested in the scope document, and the
 assumption the build currently runs on. Each assumption is reversible; the
 "where" column names the single place to change it.
 
-## Blocking — decide before go-live
+## Resolved
 
-### 1. The worked example earns the lender nothing (scope item 4)
+### 4. Which reading of the worked example — **decided: upfront charge**
 
-Section 4.1 says the first EMI is deducted at disbursement and "the remaining 13
-EMIs are then collected". Taken literally on the stated numbers:
+Section 4.1 deducts one EMI at disbursement. Read literally ("the remaining 13
+EMIs are then collected") the lender pays out ₹93,000 and collects ₹93,000 —
+zero margin, and the quoted 3%/month never appears.
+
+Malganga confirmed the other reading: **the withheld EMI is an upfront charge
+and the full schedule is still collected.**
 
 | | |
 |---|---|
@@ -17,34 +21,35 @@ EMIs are then collected". Taken literally on the stated numbers:
 | Schedule | 13 × ₹7,000 + 1 × ₹9,000 = ₹1,00,000 |
 | Withheld at disbursement | ₹7,000 |
 | Cash to customer | ₹93,000 |
-| Collected (13 remaining EMIs) | ₹93,000 |
-| **Lender margin** | **₹0** |
-
-Pay out ₹93,000, collect ₹93,000. The stated 3%/month never appears.
-
-The only reading of the same example that produces a return treats the withheld
-EMI as an **upfront charge** and still collects all 14 installments:
-
-| | |
-|---|---|
-| Cash to customer | ₹93,000 |
-| Collected (14 EMIs) | ₹1,00,000 |
+| Collected (all 14 EMIs) | ₹1,00,000 |
 | **Lender margin** | **₹7,000 — about 2.33% per month on the cash advanced** |
 
-2.33% is close to the 3% quoted, so this is almost certainly the intent.
+Implemented as `EXTRA_CHARGE`, the default for flat loans. The zero-margin
+reading has been removed from the codebase, along with the pre-settled
+installment state it required — no installment is ever settled by the
+withholding, so all EMIs are collected and all EMIs get reminders.
 
-**Assumed:** the second reading (`EXTRA_CHARGE`) is the default. Both are
-selectable per loan, and the loan form shows the resulting margin and effective
-rate live, with a red warning whenever a configuration would earn nothing.
+`NONE` remains for interest-bearing structures (`INTEREST_ONLY`,
+`INTEREST_PRINCIPAL`) where nothing is withheld at payout. Selecting it on a
+flat loan still produces zero margin, so the loan form keeps its live margin
+and effective-rate readout and still warns when a configuration earns nothing.
 
-**Still needed:** the general rule for any amount and tenure. The current rule
-reproduces the example exactly — EMI = loan amount ÷ tenure, rounded **down** to
-the nearest ₹500, with the remainder loaded onto the final EMI (₹1,00,000 ÷ 14 =
-₹7,142 → ₹7,000; final = ₹9,000). Confirm the rounding step and whether the
-remainder belongs on the last EMI or the first.
+*Where:* `UPFRONT_MODES` in `src/lib/enums.ts`, `disbursementOf` in
+`src/lib/emi.ts`. Asserted by `npm test`.
 
-*Where:* `src/lib/emi.ts` (`buildSchedule`, `DEFAULT_ROUNDING_PAISE`),
-`src/lib/enums.ts` (`UPFRONT_MODES`).
+## Blocking — decide before go-live
+
+### 4a. The general rounding rule (follow-on from the above)
+
+The margin question is settled; the *shape* of the schedule for arbitrary
+inputs is not. The current rule reproduces the example exactly — EMI = loan
+amount ÷ tenure, rounded **down** to the nearest ₹500, remainder loaded onto
+the final EMI (₹1,00,000 ÷ 14 = ₹7,142 → ₹7,000; final = ₹9,000).
+
+Confirm the rounding step (₹500? ₹100? none?) and whether the remainder
+belongs on the last EMI or the first.
+
+*Where:* `DEFAULT_ROUNDING_PAISE` and `buildSchedule` in `src/lib/emi.ts`.
 
 ### 7. Notification channel and gateway
 

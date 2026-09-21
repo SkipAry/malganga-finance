@@ -43,13 +43,7 @@ export const LOAN_STRUCTURE_HINT: Record<LoanStructure, string> = {
 export const LOAN_STATUSES = ["ACTIVE", "CLOSED", "DEFAULTED"] as const;
 export type LoanStatus = (typeof LOAN_STATUSES)[number];
 
-export const INSTALLMENT_STATUSES = [
-  "PENDING",
-  "PARTIAL",
-  "PAID",
-  "WAIVED",
-  "DEDUCTED_AT_DISBURSAL",
-] as const;
+export const INSTALLMENT_STATUSES = ["PENDING", "PARTIAL", "PAID", "WAIVED"] as const;
 export type InstallmentStatus = (typeof INSTALLMENT_STATUSES)[number];
 
 export const INSTALLMENT_STATUS_LABEL: Record<InstallmentStatus, string> = {
@@ -57,7 +51,6 @@ export const INSTALLMENT_STATUS_LABEL: Record<InstallmentStatus, string> = {
   PARTIAL: "Part paid",
   PAID: "Paid",
   WAIVED: "Waived",
-  DEDUCTED_AT_DISBURSAL: "Deducted upfront",
 };
 
 export const INVESTOR_TYPES = ["INTERNAL", "EXTERNAL"] as const;
@@ -162,26 +155,25 @@ export type NotificationChannel = (typeof NOTIFICATION_CHANNELS)[number];
 /**
  * How the upfront withholding at disbursement is treated.
  *
- * Scope 4.1 says the first EMI is deducted at disbursement and "the remaining
- * 13 EMIs are then collected". Taken literally that is SETTLES_EMI_1 - and it
- * nets the lender exactly zero (pay out 93,000, collect 93,000). The only
- * reading of the worked example that produces a margin (7,000, ~2.33%/month on
- * the cash advanced) is EXTRA_CHARGE, so that is the default. This is scope
- * section 5, item 4 and must be confirmed by Malganga.
+ * Scope 4.1 deducts one EMI at disbursement. Read literally ("the remaining 13
+ * EMIs are then collected") that returns exactly the amount advanced and earns
+ * the lender nothing, so Malganga confirmed the other reading: the withheld EMI
+ * is an upfront charge and the full schedule is still collected. On the scope
+ * example that is a 7,000 margin, about 2.33% per month on the cash advanced.
+ *
+ * NONE remains for loans that carry their own interest (INTEREST_ONLY,
+ * INTEREST_PRINCIPAL), where nothing is withheld at payout.
  */
-export const UPFRONT_MODES = ["NONE", "SETTLES_EMI_1", "EXTRA_CHARGE"] as const;
+export const UPFRONT_MODES = ["NONE", "EXTRA_CHARGE"] as const;
 export type UpfrontMode = (typeof UPFRONT_MODES)[number];
 
 export const UPFRONT_MODE_LABEL: Record<UpfrontMode, string> = {
   NONE: "No upfront deduction",
-  SETTLES_EMI_1: "Deduct EMI 1 and treat it as paid",
   EXTRA_CHARGE: "Deduct one EMI as an upfront charge",
 };
 
 export const UPFRONT_MODE_HINT: Record<UpfrontMode, string> = {
   NONE: "The full loan amount is handed over and every EMI is collected on schedule.",
-  SETTLES_EMI_1:
-    "One EMI is withheld and installment 1 is marked settled, so only the remaining EMIs are collected. On a flat loan this returns exactly the amount advanced - no margin.",
   EXTRA_CHARGE:
-    "One EMI is withheld as an upfront charge and the full schedule is still collected. This is the reading of the scope example that yields a lender margin.",
+    "One EMI is withheld at disbursement as the lender's charge, and the full schedule is still collected on top of it.",
 };

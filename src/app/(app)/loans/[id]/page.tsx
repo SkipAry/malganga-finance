@@ -143,7 +143,7 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
           <Card>
             <CardHeader
               title="EMI schedule"
-              subtitle={`${loan.installments.filter((i) => i.status === "PAID" || i.status === "DEDUCTED_AT_DISBURSAL").length} of ${loan.tenure} settled`}
+              subtitle={`${loan.installments.filter((i) => i.status === "PAID").length} of ${loan.tenure} settled`}
               action={
                 <div className="w-32">
                   <Progress value={pct(paid, scheduled)} tone={overdueAmount > 0 ? "risk" : "money"} />

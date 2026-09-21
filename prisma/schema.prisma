@@ -113,7 +113,7 @@ model Loan {
   lastEmiOn        DateTime
 
   /// How the upfront withholding works. See src/lib/enums.ts UPFRONT_MODES.
-  /// NONE | SETTLES_EMI_1 | EXTRA_CHARGE
+  /// NONE | EXTRA_CHARGE
   upfrontMode       String   @default("EXTRA_CHARGE")
   netDisbursedPaise Int
   status            String   @default("ACTIVE") // ACTIVE | CLOSED | DEFAULTED
@@ -140,7 +140,7 @@ model Installment {
   interestPaise  Int       @default(0)
   totalPaise     Int
   paidPaise      Int       @default(0)
-  status         String    @default("PENDING") // PENDING | PARTIAL | PAID | WAIVED | DEDUCTED_AT_DISBURSAL
+  status         String    @default("PENDING") // PENDING | PARTIAL | PAID | WAIVED
   paidOn         DateTime?
 
   payments      Payment[]
