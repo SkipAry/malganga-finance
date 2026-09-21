@@ -158,7 +158,7 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
                   <Th align="right">EMI</Th>
                   <Th align="right">Paid</Th>
                   <Th align="right">Status</Th>
-                  {isAdmin ? <Th /> : null}
+                  {isAdmin ? <Th><span className="sr-only">Actions</span></Th> : null}
                 </tr>
               </thead>
               <tbody>
@@ -222,7 +222,7 @@ export default async function LoanPage({ params }: { params: Promise<{ id: strin
                     <Th>Mode</Th>
                     <Th>Reference</Th>
                     <Th>By</Th>
-                    {isAdmin ? <Th /> : null}
+                    {isAdmin ? <Th><span className="sr-only">Actions</span></Th> : null}
                   </tr>
                 </thead>
                 <tbody>

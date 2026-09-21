@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -37,7 +38,28 @@ const SERIES = [
   { key: "expenses", name: "Expenses", color: "var(--tone-warn)", dash: "2 3", fill: "none" },
 ] as const;
 
+/**
+ * Recharts animates on a rAF loop, not with CSS transitions, so the global
+ * prefers-reduced-motion override in globals.css cannot reach it. Read the
+ * preference here and turn the animation off at source.
+ */
+function usePrefersReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReduced(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  return reduced;
+}
+
 export function TrendChart({ data }: { data: TrendPoint[] }) {
+  const reducedMotion = usePrefersReducedMotion();
+
   return (
     <div className="h-[260px] w-full px-2 pb-2 pt-4">
       <ResponsiveContainer width="100%" height="100%">
@@ -98,6 +120,7 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
               strokeDasharray={s.dash}
               fill={s.fill}
               activeDot={{ r: 4, strokeWidth: 2 }}
+              isAnimationActive={!reducedMotion}
             />
           ))}
         </AreaChart>

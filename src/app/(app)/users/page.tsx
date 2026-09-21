@@ -59,7 +59,7 @@ export default async function UsersPage() {
                   <Th>Role</Th>
                   <Th>Linked to</Th>
                   <Th align="right">Status</Th>
-                  <Th />
+                  <Th><span className="sr-only">Actions</span></Th>
                 </tr>
               </thead>
               <tbody>

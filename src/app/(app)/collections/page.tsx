@@ -100,7 +100,7 @@ export default async function CollectionsPage({
                 <Th>Due</Th>
                 <Th align="right">Amount</Th>
                 <Th align="right">Status</Th>
-                <Th />
+                <Th><span className="sr-only">Actions</span></Th>
               </tr>
             </thead>
             <tbody>
@@ -112,7 +112,10 @@ export default async function CollectionsPage({
                     </Link>
                   </Td>
                   <Td>
-                    <a href={`tel:${row.loan.customer.phone}`} className="hover:underline">
+                    <a
+                      href={`tel:${row.loan.customer.phone}`}
+                      className="inline-flex min-h-8 items-center hover:underline"
+                    >
                       {row.loan.customer.phone}
                     </a>
                   </Td>

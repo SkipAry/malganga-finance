@@ -116,7 +116,7 @@ export function StatTile({
         style={{ background: accent[tone], opacity: tone === "neutral" ? 0.25 : 0.9 }}
       />
       {href ? (
-        <Link href={href} className="block cursor-pointer focus-visible:outline-none">
+        <Link href={href} className="block cursor-pointer">
           {body}
           <span className="absolute inset-0" aria-hidden />
         </Link>

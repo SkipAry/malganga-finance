@@ -267,7 +267,13 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
             <div className="p-5">
               <DescList
                 items={[
-                  ["Mobile", <a key="p" href={`tel:${customer.phone}`} className="hover:underline">{customer.phone}</a>],
+                  ["Mobile", <a
+                      key="p"
+                      href={`tel:${customer.phone}`}
+                      className="inline-flex min-h-8 items-center hover:underline"
+                    >
+                      {customer.phone}
+                    </a>],
                   ["Alternate", customer.altPhone ?? "—"],
                   ["Email", customer.email ?? "—"],
                   ["Date of birth", formatDate(customer.dob)],

@@ -137,7 +137,7 @@ export default async function PaymentsPage({
                 <Th>Mode</Th>
                 <Th>Reference</Th>
                 <Th>Recorded by</Th>
-                {isAdmin ? <Th /> : null}
+                {isAdmin ? <Th><span className="sr-only">Actions</span></Th> : null}
               </tr>
             </thead>
             <tbody>

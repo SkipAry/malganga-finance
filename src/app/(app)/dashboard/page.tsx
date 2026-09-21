@@ -184,7 +184,7 @@ export default async function DashboardPage() {
                   <Th>Due</Th>
                   <Th align="right">Amount</Th>
                   <Th align="right">Status</Th>
-                  <Th />
+                  <Th><span className="sr-only">Actions</span></Th>
                 </tr>
               </thead>
               <tbody>

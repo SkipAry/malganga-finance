@@ -108,7 +108,7 @@ export default async function InvestorPage({ params }: { params: Promise<{ id: s
                   <Th align="right">Amount</Th>
                   <Th>Mode</Th>
                   <Th>Note</Th>
-                  <Th />
+                  <Th><span className="sr-only">Actions</span></Th>
                 </tr>
               </thead>
               <tbody>

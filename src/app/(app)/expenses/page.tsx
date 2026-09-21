@@ -121,7 +121,7 @@ export default async function ExpensesPage({
                   <Th align="right">Amount</Th>
                   <Th>Mode</Th>
                   <Th>By</Th>
-                  {isAdmin ? <Th /> : null}
+                  {isAdmin ? <Th><span className="sr-only">Actions</span></Th> : null}
                 </tr>
               </thead>
               <tbody>

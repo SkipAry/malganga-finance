@@ -137,7 +137,7 @@ export default async function NotificationsPage({
                 <Th>Scheduled</Th>
                 <Th>Message</Th>
                 <Th align="right">Status</Th>
-                {status === "PENDING" ? <Th /> : null}
+                {status === "PENDING" ? <Th><span className="sr-only">Actions</span></Th> : null}
               </tr>
             </thead>
             <tbody>

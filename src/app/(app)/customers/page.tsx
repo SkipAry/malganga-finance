@@ -149,7 +149,7 @@ export default async function CustomersPage({
                       ) : null}
                     </Td>
                     <Td>
-                      <a href={`tel:${c.phone}`} className="hover:underline">
+                      <a href={`tel:${c.phone}`} className="inline-flex min-h-8 items-center hover:underline">
                         {c.phone}
                       </a>
                       {c.city ? (
