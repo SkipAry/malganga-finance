@@ -1,13 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -31,8 +24,25 @@ const themeScript = `(function(){try{var t=localStorage.getItem('mg-theme');if(t
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={inter.variable} suppressHydrationWarning>
+    <html lang="en-IN" suppressHydrationWarning>
       <head>
+        {/*
+         * Google Sans, open-licensed (SIL OFL) since November 2025. Loaded from
+         * the Google Fonts API rather than next/font because the font data
+         * bundled with this Next version predates the release.
+         *
+         * No `subset` parameter on purpose: the rupee sign (U+20B9) is absent
+         * from the latin subset and only ships in the Indic ones, so the API is
+         * left to serve every subset and the browser fetches the slices its
+         * content actually needs. Restricting to latin would render every
+         * amount's ₹ in a fallback face.
+         */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,wght@0,400..700;1,400..700&display=swap"
+          rel="stylesheet"
+        />
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body>{children}</body>
