@@ -1,15 +1,26 @@
-// Malganga Finance - data model.
-// NOTE: SQLite has no native enum support, so enum-like columns are Strings
-// validated at the application boundary (see src/lib/enums.ts + zod schemas).
-// All monetary values are stored as INTEGER PAISE to avoid float drift.
+// Malganga Finance - data model. Postgres (Supabase).
+//
+// Enum-like columns are Strings rather than Postgres enums: the allowed values
+// live in src/lib/enums.ts and are enforced by zod at every write boundary.
+// Promoting them to real enums would add database-level integrity but touches
+// every action and page, so it is a deliberate follow-up, not an oversight.
+//
+// All monetary values are stored as INTEGER PAISE to avoid float drift. Int is
+// int4, so a single row caps at about Rs 2.14 crore - comfortably above
+// small-ticket lending. Aggregates are summed by Postgres as bigint, so totals
+// do not overflow.
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection (PgBouncer, port 6543) for the app; serverless functions
+  // open many short-lived connections and would exhaust direct slots.
+  url       = env("DATABASE_URL")
+  // Direct connection (port 5432) - migrations cannot run through PgBouncer.
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

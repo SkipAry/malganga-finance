@@ -15,6 +15,39 @@ const db = new PrismaClient();
 
 const today = startOfDay(new Date());
 
+/**
+ * This script DELETES every row before inserting demo data, and it creates
+ * logins whose passwords are published in the README. Neither belongs near a
+ * real ledger, so it refuses to run against anything that is not obviously a
+ * local database. Override only if you know exactly what you are doing:
+ *   ALLOW_DESTRUCTIVE_SEED=yes npm run db:seed
+ */
+function assertSafeTarget(): void {
+  const url = process.env.DATABASE_URL ?? "";
+  const isLocal =
+    url.startsWith("file:") ||
+    /@(localhost|127\.0\.0\.1|host\.docker\.internal)[:/]/.test(url);
+
+  if (isLocal || process.env.ALLOW_DESTRUCTIVE_SEED === "yes") return;
+
+  const shown = url.replace(/:\/\/[^@]*@/, "://***@").slice(0, 70);
+  console.error(
+    [
+      "",
+      "Refusing to seed: DATABASE_URL does not look like a local database.",
+      `  ${shown}`,
+      "",
+      "This script deletes every row and creates demo logins whose passwords",
+      "are published in the README.",
+      "",
+      "  To bootstrap a real deployment:  npm run create:admin",
+      "  To override deliberately:        ALLOW_DESTRUCTIVE_SEED=yes npm run db:seed",
+      "",
+    ].join("\n"),
+  );
+  process.exit(1);
+}
+
 async function wipe() {
   // Child-first so foreign keys never block the reset.
   await db.notification.deleteMany();
@@ -32,6 +65,7 @@ async function wipe() {
 }
 
 async function main() {
+  assertSafeTarget();
   await wipe();
 
   /* ------------------------------------------------------------- investors */

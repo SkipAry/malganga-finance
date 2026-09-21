@@ -12,7 +12,7 @@ Document v1.0 (15 September 2026)*.
 |---|---|
 | Framework | Next.js 15 (App Router, React 19, server actions) |
 | Language | TypeScript, strict |
-| Database | SQLite via Prisma 6 |
+| Database | Postgres (Supabase) via Prisma 6 |
 | Styling | Tailwind CSS v4, own component primitives |
 | Charts | Recharts |
 | Auth | Signed httpOnly JWT cookie (`jose`) + bcrypt |
@@ -24,10 +24,15 @@ mutations go through server actions.
 
 ```bash
 npm install
-npm run db:push
-npm run db:seed
+cp .env.example .env     # then fill in the two connection strings + AUTH_SECRET
+npm run db:deploy        # apply migrations
+npm run db:seed          # demo data - local databases only
 npm run dev
 ```
+
+`db:seed` deletes every row and creates the demo logins below, so it refuses to
+run unless `DATABASE_URL` points at a local database. For a real deployment see
+[docs/deployment-guide.md](docs/deployment-guide.md).
 
 Then open http://localhost:3000.
 
@@ -48,28 +53,28 @@ Demo sign-ins (created by the seed, development only):
 | `npm start` | Serve the production build |
 | `npm test` | EMI engine and money checks |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run db:push` | Apply `schema.prisma` to the database |
-| `npm run db:seed` | Load demo data (clears existing rows first) |
-| `npm run db:reset` | Drop and rebuild, then seed |
+| `npm run db:migrate` | Create a migration from schema changes (local) |
+| `npm run db:deploy` | Apply pending migrations (used for deployments) |
+| `npm run db:seed` | Load demo data — clears every row, local only |
+| `npm run create:admin` | Create the first real administrator |
 
 ## Configuration
 
-`.env` (see `.env.example`):
+See `.env.example`. Three variables: `DATABASE_URL` (Supabase transaction
+pooler, port 6543), `DIRECT_URL` (direct connection, port 5432, migrations
+only) and `AUTH_SECRET`.
 
-```
-DATABASE_URL="file:./dev.db"
-AUTH_SECRET="at least 32 characters"
-```
-
-`AUTH_SECRET` is required and validated at runtime — generate a real one for any
-deployment (`openssl rand -base64 32`). Sessions last 12 hours.
+`AUTH_SECRET` is required and validated at runtime — generate a real one per
+environment (`openssl rand -base64 32`). Sessions last 12 hours.
 
 ## Layout
 
 ```
 prisma/
   schema.prisma        data model (money stored as integer paise)
+  migrations/          applied schema history
   seed.ts              demo book: loans at various stages, overdue EMIs
+  create-admin.ts      bootstrap the first administrator on a deployment
 src/
   actions/             server actions, one file per domain
   app/
@@ -121,6 +126,12 @@ schedule is still collected on top of it. On the scope example: lend
 Loans that carry their own interest (`INTEREST_ONLY`, `INTEREST_PRINCIPAL`)
 withhold nothing at payout. The disbursement form shows margin and effective
 rate live and warns whenever a configuration would earn nothing.
+
+## Deployment
+
+Postgres on Supabase (`ap-south-1`), app on Vercel. RLS is enabled with no
+policies on purpose — see [docs/deployment-guide.md](docs/deployment-guide.md)
+before changing it or running anything against the cloud database.
 
 ## Open scope questions
 

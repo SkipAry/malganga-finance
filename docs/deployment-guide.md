@@ -1,0 +1,123 @@
+# Deployment
+
+Database on Supabase Postgres, application on Vercel. Supabase does not run
+Next.js, so the two are separate.
+
+## Supabase project
+
+| | |
+|---|---|
+| Project | `malganga-finance` |
+| Reference | `kqqypvgmozcztcbrdqdn` |
+| Region | `ap-south-1` (Mumbai) |
+| Postgres | 17 |
+| Cost | ₹0/month on the current plan |
+
+Mumbai keeps latency low for Pune-based staff and keeps customer financial data
+in India.
+
+### Row Level Security
+
+RLS is **enabled on all 13 tables with no policies**, which is deliberate.
+
+Supabase publishes every table in `public` over PostgREST to the `anon` and
+`authenticated` roles, and the anon key is designed to be public. With RLS off,
+anyone holding that key could read or write the entire ledger — KYC numbers,
+phone numbers, document scans, payments.
+
+This application never uses the Supabase client or the anon key. It reaches
+Postgres through Prisma as the table-owning `postgres` role, which bypasses
+RLS. Deny-all RLS therefore closes the REST surface and leaves the app
+untouched.
+
+The Supabase linter will report 13 INFO-level "RLS enabled, no policy" notices.
+That is the intended state, not an outstanding problem. **Do not "fix" them by
+adding permissive policies** — that would reopen the REST surface.
+
+Application authorisation (admin / agent / investor) lives in
+`src/lib/session.ts`, enforced on every page and server action. RLS is the
+outer perimeter, not a substitute.
+
+## Environment variables
+
+Both connection strings come from **Supabase dashboard → Project Settings →
+Database → Connection string**.
+
+| Variable | Value | Used by |
+|---|---|---|
+| `DATABASE_URL` | Transaction pooler, port **6543**, with `?pgbouncer=true&connection_limit=1` | The running app |
+| `DIRECT_URL` | Direct connection, port **5432** | `prisma migrate` only |
+| `AUTH_SECRET` | `openssl rand -base64 32` | Session signing |
+
+The pooler matters on Vercel: serverless functions open many short-lived
+connections and would exhaust direct Postgres slots. Migrations cannot run
+through PgBouncer, hence the second URL.
+
+Use a **different `AUTH_SECRET` per environment**. Sharing one means a session
+cookie minted in preview is valid in production.
+
+## Deploying to Vercel
+
+```bash
+npx vercel link
+npx vercel env add DATABASE_URL production
+npx vercel env add DIRECT_URL production
+npx vercel env add AUTH_SECRET production
+npx vercel --prod
+```
+
+Build command is the default `npm run build`, which runs `prisma generate`
+first. Nothing else is needed — no `vercel.json`.
+
+### Schema changes
+
+Migrations are **not** run during the Vercel build. On a ledger, schema changes
+should be a deliberate act, not a side effect of a deploy:
+
+```bash
+npm run db:deploy      # prisma migrate deploy, against DIRECT_URL
+```
+
+Run it before the deploy that needs it. To create a new migration locally:
+
+```bash
+npm run db:migrate     # prisma migrate dev
+```
+
+## First administrator
+
+Do **not** run `npm run db:seed` against a deployment. It deletes every row and
+creates logins whose passwords are published in the README. The script now
+refuses to run against a non-local `DATABASE_URL` unless
+`ALLOW_DESTRUCTIVE_SEED=yes` is set.
+
+Bootstrap the real first admin instead:
+
+```bash
+ADMIN_EMAIL="owner@malganga.in" \
+ADMIN_NAME="Anil Malganga" \
+ADMIN_PASSWORD='<long unique password>' \
+npm run create:admin
+```
+
+It inserts or updates exactly one row, deletes nothing, hashes with bcrypt cost
+12, and records the action in the audit log. Everyone else is created from
+**Users & roles** inside the app.
+
+## Backups
+
+Supabase takes daily backups on paid plans; the free plan does not. Before this
+holds real customer money, either move to a paid plan or schedule
+`pg_dump` against `DIRECT_URL`. A lending ledger with no backup is a
+single hardware fault away from being unreconstructable.
+
+## Limits worth knowing
+
+- **Free-plan projects pause after ~1 week of inactivity.** Fine during
+  development; a paused database means an app that cannot serve. Upgrade before
+  handing this to staff.
+- **Money is `Int` (paise)**, so one row caps near ₹2.14 crore. Aggregates are
+  summed by Postgres as `bigint` and do not overflow. Move the columns to
+  `BigInt` if single loans ever approach that.
+- **KYC scans are base64 in the `Document` table**, capped at 4 MB each. This
+  will bloat the database; move to Supabase Storage when scans become routine.
