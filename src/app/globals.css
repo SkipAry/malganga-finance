@@ -1,0 +1,186 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Malganga Finance design tokens.
+   One restrained palette: deep navy for structure, emerald for money coming in,
+   amber for attention, rose for loss. Everything else is neutral so the numbers
+   are the loudest thing on the page.
+--------------------------------------------------------------------------- */
+
+@theme {
+  --color-ink-50: #f6f7f9;
+  --color-ink-100: #eceef2;
+  --color-ink-200: #d6dae2;
+  --color-ink-300: #b2b9c7;
+  --color-ink-400: #8792a6;
+  --color-ink-500: #667085;
+  --color-ink-600: #4d5768;
+  --color-ink-700: #3a4252;
+  --color-ink-800: #232a36;
+  --color-ink-900: #141922;
+  --color-ink-950: #0b0e14;
+
+  --color-brand-50: #eef4ff;
+  --color-brand-100: #dbe7fe;
+  --color-brand-200: #bfd3fe;
+  --color-brand-300: #93b4fd;
+  --color-brand-400: #6090fa;
+  --color-brand-500: #3b6df6;
+  --color-brand-600: #2450eb;
+  --color-brand-700: #1d3ed8;
+  --color-brand-800: #1e35af;
+  --color-brand-900: #1e318a;
+
+  --color-money-500: #0e9f6e;
+  --color-money-600: #057a55;
+  --color-money-100: #def7ec;
+
+  --color-warn-500: #d97706;
+  --color-warn-100: #fef3c7;
+
+  --color-risk-500: #e02424;
+  --color-risk-100: #fde8e8;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+
+  --radius-card: 14px;
+}
+
+:root {
+  --bg: #f4f6f9;
+  --bg-elev: #ffffff;
+  --bg-sunken: #eef1f6;
+  --border: #e2e6ed;
+  --border-strong: #cfd5e0;
+  --text: #141922;
+  --text-muted: #667085;
+  --text-faint: #8792a6;
+  --sidebar: #0f1621;
+  --sidebar-text: #aab4c5;
+  --sidebar-active: #1c2735;
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-pop: 0 12px 32px -8px rgba(16, 24, 40, 0.18);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0e14;
+  --bg-elev: #141922;
+  --bg-sunken: #10151d;
+  --border: #242b37;
+  --border-strong: #333c4b;
+  --text: #e7eaf0;
+  --text-muted: #9aa4b6;
+  --text-faint: #6b7688;
+  --sidebar: #090c12;
+  --sidebar-text: #8b95a8;
+  --sidebar-active: #1a212c;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b0e14;
+    --bg-elev: #141922;
+    --bg-sunken: #10151d;
+    --border: #242b37;
+    --border-strong: #333c4b;
+    --text: #e7eaf0;
+    --text-muted: #9aa4b6;
+    --text-faint: #6b7688;
+    --sidebar: #090c12;
+    --sidebar-text: #8b95a8;
+    --sidebar-active: #1a212c;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Numbers line up in columns — non-negotiable in a ledger. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-ink-900);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Thin, unobtrusive scrollbars so dense tables stay calm. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-rise {
+  animation: rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  main {
+    padding: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

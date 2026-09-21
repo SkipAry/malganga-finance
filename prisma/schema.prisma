@@ -1,0 +1,258 @@
+// Malganga Finance - data model.
+// NOTE: SQLite has no native enum support, so enum-like columns are Strings
+// validated at the application boundary (see src/lib/enums.ts + zod schemas).
+// All monetary values are stored as INTEGER PAISE to avoid float drift.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         String // ADMIN | AGENT | INVESTOR
+  isActive     Boolean   @default(true)
+  investorId   String? // set when role = INVESTOR
+  investor     Investor? @relation(fields: [investorId], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  payments  Payment[]
+  expenses  Expense[]
+  auditLogs AuditLog[]
+
+  @@index([role])
+}
+
+model Customer {
+  id       String    @id @default(cuid())
+  code     String    @unique
+  name     String
+  phone    String
+  altPhone String?
+  email    String?
+  dob      DateTime?
+
+  addressLine1 String?
+  addressLine2 String?
+  city         String?
+  state        String?
+  pincode      String?
+
+  shopName  String?
+  shopActNo String?
+
+  referrerName     String?
+  referrerPhone    String?
+  referrerRelation String?
+
+  notes     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  loans         Loan[]
+  documents     Document[]
+  collaterals   Collateral[]
+  notifications Notification[]
+
+  @@index([name])
+  @@index([phone])
+}
+
+/// KYC / Shop Act / photographs / collateral papers.
+model Document {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  kind       String // AADHAAR | PAN | VOTER_ID | DRIVING_LICENCE | PASSPORT | SHOP_ACT | PHOTO_CUSTOMER | PHOTO_SHOP | PHOTO_COLLATERAL | OTHER
+  label      String?
+  number     String?
+  fileName   String?
+  fileData   String? // data URL for small scans; swap for object storage in prod
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model Collateral {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  loanId      String?
+  loan        Loan?    @relation(fields: [loanId], references: [id], onDelete: SetNull)
+  assetType   String // GOLD | VEHICLE | PROPERTY | MACHINERY | STOCK | OTHER
+  description String
+  valuePaise  Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model Loan {
+  id         String   @id @default(cuid())
+  code       String   @unique
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  principalPaise   Int
+  interestRatePct  Float // monthly %
+  tenure           Int // number of installments
+  frequency        String // WEEKLY | MONTHLY
+  structure        String // FLAT_UPFRONT | INTEREST_ONLY | INTEREST_PRINCIPAL
+  disbursedOn      DateTime
+  disbursementMode String // ONLINE | CASH
+  firstEmiOn       DateTime
+  lastEmiOn        DateTime
+
+  /// How the upfront withholding works. See src/lib/enums.ts UPFRONT_MODES.
+  /// NONE | SETTLES_EMI_1 | EXTRA_CHARGE
+  upfrontMode       String   @default("EXTRA_CHARGE")
+  netDisbursedPaise Int
+  status            String   @default("ACTIVE") // ACTIVE | CLOSED | DEFAULTED
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  installments  Installment[]
+  payments      Payment[]
+  collaterals   Collateral[]
+  notifications Notification[]
+
+  @@index([customerId])
+  @@index([status])
+}
+
+model Installment {
+  id             String    @id @default(cuid())
+  loanId         String
+  loan           Loan      @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  seq            Int
+  dueDate        DateTime
+  principalPaise Int       @default(0)
+  interestPaise  Int       @default(0)
+  totalPaise     Int
+  paidPaise      Int       @default(0)
+  status         String    @default("PENDING") // PENDING | PARTIAL | PAID | WAIVED | DEDUCTED_AT_DISBURSAL
+  paidOn         DateTime?
+
+  payments      Payment[]
+  notifications Notification[]
+
+  @@unique([loanId, seq])
+  @@index([dueDate, status])
+}
+
+model Payment {
+  id            String       @id @default(cuid())
+  loanId        String
+  loan          Loan         @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  installmentId String?
+  installment   Installment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+  amountPaise   Int
+  mode          String // ONLINE | CASH
+  receivedOn    DateTime
+  reference     String?
+  note          String?
+  recordedById  String?
+  recordedBy    User?        @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt     DateTime     @default(now())
+
+  @@index([loanId])
+  @@index([receivedOn])
+}
+
+model Investor {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  name            String
+  phone           String
+  email           String?
+  type            String // INTERNAL | EXTERNAL
+  interestRatePct Float // monthly %
+  address         String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  transactions InvestorTxn[]
+  users        User[]
+
+  @@index([type])
+}
+
+model InvestorTxn {
+  id          String   @id @default(cuid())
+  investorId  String
+  investor    Investor @relation(fields: [investorId], references: [id], onDelete: Cascade)
+  type        String // INVESTMENT | WITHDRAWAL | INTEREST_PAYOUT
+  amountPaise Int
+  date        DateTime
+  mode        String   @default("ONLINE") // ONLINE | CASH
+  note        String?
+  createdAt   DateTime @default(now())
+
+  @@index([investorId])
+  @@index([date])
+}
+
+model Expense {
+  id           String   @id @default(cuid())
+  category     String // DAILY | TRANSPORT | MONTHLY | ACCOUNTING | MAINTENANCE
+  amountPaise  Int
+  date         DateTime
+  description  String
+  mode         String   @default("CASH") // ONLINE | CASH
+  recordedById String?
+  recordedBy   User?    @relation(fields: [recordedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime @default(now())
+
+  @@index([date])
+  @@index([category])
+}
+
+model Notification {
+  id            String      @id @default(cuid())
+  customerId    String
+  customer      Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  loanId        String
+  loan          Loan        @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  installmentId String
+  installment   Installment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+  kind          String // BEFORE_DUE | ON_DUE | OVERDUE
+  channel       String // SMS | WHATSAPP | EMAIL
+  scheduledFor  DateTime
+  sentAt        DateTime?
+  status        String      @default("PENDING") // PENDING | SENT | FAILED | CANCELLED
+  message       String
+  error         String?
+  createdAt     DateTime    @default(now())
+
+  @@unique([installmentId, kind])
+  @@index([status, scheduledFor])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  String?
+  meta      String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
