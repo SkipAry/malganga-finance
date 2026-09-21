@@ -9,9 +9,8 @@
  */
 import { addDays, formatDate, startOfDay } from "./dates";
 import type { NotificationChannel, NotificationKind } from "./enums";
-import { formatMoney } from "./money";
 
-export const DEFAULT_CHANNEL: NotificationChannel = "SMS";
+export const DEFAULT_CHANNEL: NotificationChannel = "WHATSAPP";
 
 /** Overdue reminders repeat on this cadence until the EMI is settled. */
 export const OVERDUE_REPEAT_DAYS = 3;
@@ -25,27 +24,60 @@ type InstallmentForReminder = {
 
 type LoanContext = {
   loanId: string;
+  loanCode: string;
   customerId: string;
   customerName: string;
 };
 
+/**
+ * Reminder text. Deliberately carries the loan number and not the amount:
+ * these arrive on WhatsApp, where a lock-screen preview is readable by
+ * anyone holding the phone, and shop-owner borrowers often share a handset.
+ * The loan number identifies the debt for the customer without disclosing
+ * what they owe to whoever happens to be looking.
+ */
 export function reminderMessage(
   kind: NotificationKind,
   inst: InstallmentForReminder,
   ctx: LoanContext,
 ): string {
-  const amount = formatMoney(inst.totalPaise);
   const due = formatDate(inst.dueDate);
   const who = ctx.customerName.split(" ")[0];
 
   switch (kind) {
     case "BEFORE_DUE":
-      return `Dear ${who}, your EMI no. ${inst.seq} of ${amount} is due tomorrow (${due}). Please keep the amount ready. - Malganga Finance`;
+      return `Dear ${who}, EMI no. ${inst.seq} on loan ${ctx.loanCode} is due tomorrow (${due}). Please keep it ready. - Malganga Finance`;
     case "ON_DUE":
-      return `Dear ${who}, your EMI no. ${inst.seq} of ${amount} is due today (${due}). Kindly pay to avoid an overdue entry. - Malganga Finance`;
+      return `Dear ${who}, EMI no. ${inst.seq} on loan ${ctx.loanCode} is due today (${due}). Kindly pay to avoid an overdue entry. - Malganga Finance`;
     case "OVERDUE":
-      return `Dear ${who}, EMI no. ${inst.seq} of ${amount} (due ${due}) is still pending. Please clear it at the earliest. - Malganga Finance`;
+      return `Dear ${who}, EMI no. ${inst.seq} on loan ${ctx.loanCode} (due ${due}) is still pending. Please clear it at the earliest. - Malganga Finance`;
   }
+}
+
+/**
+ * Phone numbers are entered by hand, so they arrive as "9822011001",
+ * "+91 98220 11001" or "09822011001". wa.me needs digits only, with the
+ * country code and no plus. Returns null when the number cannot be read as
+ * an Indian mobile, so the caller can hide the link rather than open
+ * WhatsApp on a wrong number.
+ */
+export function toWhatsappNumber(phone: string, countryCode = "91"): string | null {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) return countryCode + digits;
+  if (digits.length === 11 && digits.startsWith("0")) return countryCode + digits.slice(1);
+  if (digits.length === 12 && digits.startsWith(countryCode)) return digits;
+  return null;
+}
+
+/**
+ * Click-to-chat link: opens WhatsApp with the reminder pre-filled, for a
+ * member of staff to send. No API, no message templates, no per-message
+ * cost - and nothing is delivered until a human presses send, which is why
+ * the queue is only marked sent by hand.
+ */
+export function whatsappLink(phone: string, message: string): string | null {
+  const number = toWhatsappNumber(phone);
+  return number ? `https://wa.me/${number}?text=${encodeURIComponent(message)}` : null;
 }
 
 function scheduledFor(kind: NotificationKind, dueDate: Date): Date {

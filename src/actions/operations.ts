@@ -118,8 +118,11 @@ export async function toggleUserActive(formData: FormData): Promise<void> {
  * Sends everything due up to now through the configured dispatcher, and tops
  * up repeat overdue reminders for EMIs that are still unpaid.
  *
- * Runs on demand from the Reminders screen; point a cron at this action once
- * Malganga confirms the channel and cadence (scope section 5, items 7 and 8).
+ * Not reachable from the UI while delivery is manual - the Reminders screen
+ * calls refreshReminderQueue instead, because `dispatcher` only writes to the
+ * log and marking rows SENT on the strength of that would be a lie. This is
+ * the seam a real WhatsApp Business API gateway plugs into: replace
+ * `dispatcher`, then point a cron here.
  */
 export async function dispatchDueReminders(): Promise<void> {
   const user = await assertStaff();
@@ -127,22 +130,18 @@ export async function dispatchDueReminders(): Promise<void> {
 
   await queueRepeatOverdueReminders(now);
 
-  const pending = await db.notification.findMany({
-    where: { status: "PENDING", scheduledFor: { lte: now } },
-    include: { customer: { select: { phone: true } }, installment: { select: { status: true } } },
+  await cancelSettledReminders(now);
+
+  const sendable = await db.notification.findMany({
+    where: {
+      status: "PENDING",
+      scheduledFor: { lte: now },
+      installment: { status: { in: ["PENDING", "PARTIAL"] } },
+    },
+    include: { customer: { select: { phone: true } } },
     take: 200,
   });
 
-  // An EMI settled since queueing must not be chased.
-  const stale = pending.filter((n) => n.installment.status === "PAID" || n.installment.status === "WAIVED");
-  if (stale.length) {
-    await db.notification.updateMany({
-      where: { id: { in: stale.map((n) => n.id) } },
-      data: { status: "CANCELLED" },
-    });
-  }
-
-  const sendable = pending.filter((n) => !stale.includes(n));
   if (!sendable.length) {
     revalidatePath("/notifications");
     return;
@@ -197,6 +196,62 @@ async function queueRepeatOverdueReminders(now: Date): Promise<void> {
       data: { status: "PENDING", scheduledFor: now },
     });
   }
+}
+
+/**
+ * An EMI settled since queueing must not be chased.
+ */
+async function cancelSettledReminders(now: Date): Promise<number> {
+  const stale = await db.notification.findMany({
+    where: {
+      status: "PENDING",
+      scheduledFor: { lte: now },
+      installment: { status: { in: ["PAID", "WAIVED"] } },
+    },
+    select: { id: true },
+    take: 200,
+  });
+  if (!stale.length) return 0;
+
+  await db.notification.updateMany({
+    where: { id: { in: stale.map((n) => n.id) } },
+    data: { status: "CANCELLED" },
+  });
+  return stale.length;
+}
+
+/**
+ * Brings the queue up to date without delivering anything: tops up repeat
+ * overdue reminders and drops any queued against an EMI that has since been
+ * paid or waived. This is what the Reminders screen calls, because delivery
+ * is currently a person pressing send in WhatsApp.
+ */
+export async function refreshReminderQueue(): Promise<void> {
+  await assertStaff();
+  const now = new Date();
+  await queueRepeatOverdueReminders(now);
+  await cancelSettledReminders(now);
+  revalidatePath("/notifications");
+}
+
+/**
+ * Records that a member of staff has sent a reminder by hand on WhatsApp.
+ *
+ * Deliberately separate from opening the click-to-chat link: nothing here
+ * can observe whether the message was actually sent, so the ledger records
+ * what a person confirms rather than what we assume. The overdue repeat
+ * cadence keys off sentAt, so this also drives the follow-up in
+ * OVERDUE_REPEAT_DAYS days.
+ */
+export async function markNotificationSent(formData: FormData): Promise<void> {
+  const user = await assertStaff();
+  const id = String(formData.get("id"));
+  await db.notification.update({
+    where: { id },
+    data: { status: "SENT", sentAt: new Date(), error: null },
+  });
+  await recordAudit(user.id, "SEND", "Notification", id, { channel: "WHATSAPP", manual: true });
+  revalidatePath("/notifications");
 }
 
 export async function cancelNotification(formData: FormData): Promise<void> {

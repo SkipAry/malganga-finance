@@ -98,6 +98,7 @@ export async function createLoanWithSchedule(tx: Tx, input: CreateLoanInput) {
 
   const reminders = buildInstallmentReminders(loan.installments, {
     loanId: loan.id,
+    loanCode: loan.code,
     customerId: loan.customerId,
     customerName: loan.customer.name,
   });

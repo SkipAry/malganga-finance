@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { cancelNotification, dispatchDueReminders } from "@/actions/operations";
+import { cancelNotification, markNotificationSent, refreshReminderQueue } from "@/actions/operations";
 import { FilterTabs } from "@/components/filter-tabs";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import { SubmitButton } from "@/components/form-parts";
@@ -21,7 +21,7 @@ import {
 import { db } from "@/lib/db";
 import { formatDate, formatDateTime } from "@/lib/dates";
 import { NOTIFICATION_KIND_LABEL, type NotificationKind } from "@/lib/enums";
-import { OVERDUE_REPEAT_DAYS } from "@/lib/notify";
+import { OVERDUE_REPEAT_DAYS, whatsappLink } from "@/lib/notify";
 import { requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Reminders" };
@@ -72,9 +72,9 @@ export default async function NotificationsPage({
         title="EMI reminders"
         subtitle="One reminder the day before, one on the due date, and repeats while overdue."
         actions={
-          <form action={dispatchDueReminders}>
-            <SubmitButton variant="primary" pendingLabel="Sending…">
-              {dueNow > 0 ? `Send ${dueNow} due now` : "Send due reminders"}
+          <form action={refreshReminderQueue}>
+            <SubmitButton variant="primary" pendingLabel="Refreshing…">
+              Refresh queue
             </SubmitButton>
           </form>
         }
@@ -88,12 +88,13 @@ export default async function NotificationsPage({
       </section>
 
       <div className="mt-4">
-        <Note tone="warn" title="Delivery is not connected yet">
-          Reminders are composed and queued correctly, but they are written to the server log
-          instead of being delivered. Scope section 5 item 7 (SMS, WhatsApp or email, and which
-          gateway) is unanswered — supply a provider and it plugs into the single dispatcher in{" "}
-          <code>src/lib/notify.ts</code>. Overdue reminders currently repeat every{" "}
-          {OVERDUE_REPEAT_DAYS} days (item 8).
+        <Note tone="warn" title="Reminders are sent by hand">
+          Each queued reminder opens in WhatsApp with the text already filled in; a member of
+          staff presses send, then marks it sent here. Nothing is delivered automatically, and
+          nothing can tell whether a message actually went — the queue records what someone
+          confirms. Overdue reminders repeat every {OVERDUE_REPEAT_DAYS} days from the date they
+          were marked sent. Automatic delivery needs a WhatsApp Business API gateway, which
+          plugs into the single dispatcher in <code>src/lib/notify.ts</code>.
         </Note>
       </div>
 
@@ -172,12 +173,35 @@ export default async function NotificationsPage({
                   <Td align="right"><StatusBadge status={n.status} /></Td>
                   {status === "PENDING" ? (
                     <Td align="right">
-                      <form action={cancelNotification}>
-                        <input type="hidden" name="id" value={n.id} />
-                        <ConfirmSubmit size="sm" variant="ghost" confirm="Cancel this reminder?">
-                          Cancel
-                        </ConfirmSubmit>
-                      </form>
+                      <div className="flex items-center justify-end gap-1">
+                        {whatsappLink(n.customer.phone, n.message) ? (
+                          <a
+                            href={whatsappLink(n.customer.phone, n.message) as string}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="tap inline-flex items-center rounded-lg px-2.5 text-sm font-medium tone-chip tone-money"
+                          >
+                            WhatsApp
+                            <span className="sr-only"> (opens WhatsApp in a new tab)</span>
+                          </a>
+                        ) : (
+                          <span className="text-xs" style={{ color: "var(--text-faint)" }}>
+                            No valid number
+                          </span>
+                        )}
+                        <form action={markNotificationSent}>
+                          <input type="hidden" name="id" value={n.id} />
+                          <SubmitButton size="sm" variant="ghost" pendingLabel="Saving…">
+                            Mark sent
+                          </SubmitButton>
+                        </form>
+                        <form action={cancelNotification}>
+                          <input type="hidden" name="id" value={n.id} />
+                          <ConfirmSubmit size="sm" variant="ghost" confirm="Cancel this reminder?">
+                            Cancel
+                          </ConfirmSubmit>
+                        </form>
+                      </div>
                     </Td>
                   ) : null}
                 </Tr>
