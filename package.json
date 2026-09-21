@@ -15,7 +15,8 @@
     "db:deploy": "prisma migrate deploy",
     "create:admin": "tsx prisma/create-admin.ts",
     "db:check": "tsx scripts/check-db-url.ts",
-    "verify:summary": "tsx scripts/verify-summary-parity.ts"
+    "verify:summary": "tsx scripts/verify-summary-parity.ts",
+    "reminders:regenerate": "tsx scripts/regenerate-pending-reminders.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
