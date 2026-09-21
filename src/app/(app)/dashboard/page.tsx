@@ -3,7 +3,7 @@ import Link from "next/link";
 
 import { StatTile } from "@/components/stat-tile";
 import { InstallmentStatusBadge, ModeBadge } from "@/components/status-badges";
-import { TrendChart } from "@/components/trend-chart";
+import { TrendChartLazy } from "@/components/trend-chart-lazy";
 import {
   Card,
   CardHeader,
@@ -129,7 +129,7 @@ export default async function DashboardPage() {
       <section className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Card>
           <CardHeader title="Cash movement" subtitle={trendSummary(trend)} />
-          <TrendChart data={trend} />
+          <TrendChartLazy data={trend} />
         </Card>
 
         <Card>
