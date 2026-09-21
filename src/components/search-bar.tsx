@@ -49,7 +49,7 @@ export function SearchBar({ placeholder = "Search…" }: { placeholder?: string 
         onChange={(event) => setValue(event.target.value)}
         placeholder={placeholder}
         aria-label={placeholder}
-        className="h-9.5 w-full rounded-lg border bg-[var(--bg-elev)] pl-9 pr-9 text-base outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-brand-500"
+        className="tap h-9.5 w-full rounded-lg border bg-[var(--bg-elev)] pl-9 pr-9 text-base outline-none transition-colors placeholder:text-[var(--text-faint)] focus:border-brand-500"
       />
       {pending ? (
         <span className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-faint)" }}>

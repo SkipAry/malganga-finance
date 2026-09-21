@@ -190,6 +190,48 @@ summary {
   cursor: pointer;
 }
 
+/*
+ * Standalone links inside data tables (the customer name, the loan code) are
+ * real targets, not prose: an agent taps the name to open the loan. A bare
+ * inline link is only as tall as its text (16px), under the 24px WCAG 2.2
+ * minimum, so they claim a floor here and 44px under the touch rules below. Scoped to td so
+ * new tables inherit it without remembering a class.
+ */
+td a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+}
+
+/*
+ * Touch targets.
+ *
+ * Collection agents work from phones, so anything a finger has to hit gets
+ * 44px there. Keyed on pointer type rather than viewport width: a touchscreen
+ * laptop needs the bigger target at desktop widths, and a mouse user keeps the
+ * dense layout on a narrow window. Desktop sizing is left to the h-* utilities.
+ */
+@media (pointer: coarse) {
+  .tap {
+    min-height: 44px;
+  }
+  .tap-square {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Table links: from the 32px desktop floor above up to a finger target. */
+  td a {
+    min-height: 44px;
+  }
+
+  /* The picker button is the real target on a file input, not the input box. */
+  input[type="file"]::file-selector-button {
+    min-height: 44px;
+  }
+}
+
+
 /* Numbers line up in columns — non-negotiable in a ledger. */
 .tnum {
   font-variant-numeric: tabular-nums;

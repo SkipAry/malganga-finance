@@ -48,7 +48,7 @@ export function FilterTabs({
   }
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap gap-2">
       {options.map((option) => {
         const active = value === option.value;
         return (
@@ -57,7 +57,7 @@ export function FilterTabs({
             href={hrefFor(option.value)}
             aria-current={active ? "page" : undefined}
             className={cx(
-              "rounded-lg px-3 py-1.5 text-sm transition-colors",
+              "tap inline-flex items-center rounded-lg px-3 py-1.5 text-sm transition-colors",
               variant === "bordered" && "border",
               active ? "font-medium" : "hover:bg-[var(--bg-sunken)]",
             )}

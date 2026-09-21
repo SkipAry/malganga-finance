@@ -106,7 +106,7 @@ export default async function CollectionsPage({
                   <Td>
                     <a
                       href={`tel:${row.loan.customer.phone}`}
-                      className="inline-flex min-h-8 items-center hover:underline"
+                      className="tap inline-flex min-h-8 items-center hover:underline"
                     >
                       {row.loan.customer.phone}
                     </a>

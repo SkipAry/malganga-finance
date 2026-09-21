@@ -86,7 +86,7 @@ export function PageHeader({
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const buttonBase =
-  "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-[background,border-color,opacity,transform] duration-150 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap";
+  "tap inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-[background,border-color,opacity,transform] duration-150 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-50 whitespace-nowrap";
 
 const buttonSizes = { sm: "h-8 px-3", md: "h-9.5 px-4 py-2", lg: "h-11 px-5 text-base" };
 
@@ -183,7 +183,7 @@ export function Field({
 }
 
 const controlClass =
-  "h-9.5 w-full rounded-lg border bg-[var(--bg-elev)] px-3 text-base outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-faint)] focus:border-brand-500 disabled:opacity-60";
+  "tap h-9.5 w-full rounded-lg border bg-[var(--bg-elev)] px-3 text-base outline-none transition-[border-color,box-shadow] placeholder:text-[var(--text-faint)] focus:border-brand-500 disabled:opacity-60";
 
 export const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   function Input({ className, ...rest }, ref) {

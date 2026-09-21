@@ -270,7 +270,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
                   ["Mobile", <a
                       key="p"
                       href={`tel:${customer.phone}`}
-                      className="inline-flex min-h-8 items-center hover:underline"
+                      className="tap inline-flex min-h-8 items-center hover:underline"
                     >
                       {customer.phone}
                     </a>],
