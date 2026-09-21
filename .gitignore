@@ -5,6 +5,7 @@ out
 *.db-journal
 .env
 .env*.local
+.env.backup*
 uploads
 next-env.d.ts
 tsconfig.tsbuildinfo
