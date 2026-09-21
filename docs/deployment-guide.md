@@ -45,7 +45,7 @@ Database → Connection string**.
 
 | Variable | Value | Used by |
 |---|---|---|
-| `DATABASE_URL` | Transaction pooler, port **6543**, with `?pgbouncer=true&connection_limit=1` | The running app |
+| `DATABASE_URL` | Transaction pooler, port **6543**, with `?pgbouncer=true&connection_limit=10&pool_timeout=20` | The running app |
 | `DIRECT_URL` | Direct connection, port **5432** | `prisma migrate` only |
 | `AUTH_SECRET` | `openssl rand -base64 32` | Session signing |
 
@@ -59,6 +59,14 @@ and the other common paste mistakes before deploying.
 The pooler matters on Vercel: serverless functions open many short-lived
 connections and would exhaust direct Postgres slots. Migrations cannot run
 through PgBouncer, hence the second URL.
+
+Do **not** set `connection_limit=1` here. That advice applies to a direct
+Postgres connection, where each serverless instance must hold at most one slot.
+Through PgBouncer the pooling already happens server-side, so a limit of 1 only
+starves Prisma: the dashboard issues about ten aggregates concurrently, they
+serialise behind the single connection, and the request dies with
+"Timed out fetching a new connection from the connection pool" — which reads
+like a database outage and is in fact self-inflicted.
 
 Use a **different `AUTH_SECRET` per environment**. Sharing one means a session
 cookie minted in preview is valid in production.
