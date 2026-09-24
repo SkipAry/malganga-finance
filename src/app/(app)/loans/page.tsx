@@ -23,6 +23,7 @@ import { displayName } from "@/lib/display-name";
 import type { MessageKey } from "@/lib/i18n";
 import { LOCALE_TAG } from "@/lib/i18n";
 import { getTranslate } from "@/lib/locale";
+import { cleanInput } from "@/lib/validators";
 import { requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Loans" };
@@ -41,7 +42,10 @@ export default async function LoansPage({
 }) {
   const [, t] = await Promise.all([requireStaff(), getTranslate()]);
   const tag = LOCALE_TAG[t.locale];
-  const { q = "", status = "ACTIVE" } = await searchParams;
+  const { q: rawQuery = "", status = "ACTIVE" } = await searchParams;
+  // Cleaned like stored input, so a search typed with Devanagari digits or
+  // a differently-composed letter still matches what was saved.
+  const q = cleanInput(rawQuery);
 
   const loans = await db.loan.findMany({
     where: {
@@ -51,6 +55,7 @@ export default async function LoansPage({
             OR: [
               { code: { contains: q } },
               { customer: { name: { contains: q } } },
+              { customer: { nameMr: { contains: q } } },
               { customer: { phone: { contains: q } } },
             ],
           }

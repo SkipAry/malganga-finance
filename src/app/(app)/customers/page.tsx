@@ -21,6 +21,7 @@ import { isOverdue } from "@/lib/loan-service";
 import { displayName } from "@/lib/display-name";
 import { LOCALE_TAG } from "@/lib/i18n";
 import { getTranslate } from "@/lib/locale";
+import { cleanInput } from "@/lib/validators";
 import { requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Customers" };
@@ -32,7 +33,10 @@ export default async function CustomersPage({
 }) {
   const [, t] = await Promise.all([requireStaff(), getTranslate()]);
   const tag = LOCALE_TAG[t.locale];
-  const { q = "", status = "active" } = await searchParams;
+  const { q: rawQuery = "", status = "active" } = await searchParams;
+  // Cleaned like stored input, so a search typed with Devanagari digits or
+  // a differently-composed letter still matches what was saved.
+  const q = cleanInput(rawQuery);
 
   const customers = await db.customer.findMany({
     where: {
@@ -41,6 +45,7 @@ export default async function CustomersPage({
         ? {
             OR: [
               { name: { contains: q } },
+              { nameMr: { contains: q } },
               { phone: { contains: q } },
               { code: { contains: q } },
               { shopName: { contains: q } },

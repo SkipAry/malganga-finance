@@ -15,8 +15,33 @@ import {
 } from "./enums";
 import { toPaise } from "./money";
 
+/**
+ * Agents enter customers from phones with the keyboard set to Marathi, which
+ * types Devanagari digits and composes some letters differently from keyboard
+ * to keyboard. Every text value from every form passes through here first:
+ *
+ *  - Devanagari digits become Latin. Numbers are always Latin in this app, and
+ *    an agent should not have to switch keyboards to type a phone number or an
+ *    amount - "९८२२..." was rejected outright before this.
+ *  - NFC normalisation. The same visible word can arrive as different bytes
+ *    (a nukta letter precomposed, or base + nukta), which makes search and
+ *    duplicate checks miss. NFC leaves ZWJ alone, which Marathi needs for the
+ *    eyelash ra, so it changes encoding without changing what is written.
+ */
+export function cleanInput(value: string): string {
+  return value
+    .normalize("NFC")
+    .replace(/[\u0966-\u096F]/g, (d) => String(d.charCodeAt(0) - 0x0966));
+}
+
+/** Applies cleanInput before the wrapped schema sees the value. */
+function cleaned<T extends z.ZodTypeAny>(schema: T) {
+  return z.preprocess((v) => (typeof v === "string" ? cleanInput(v) : v), schema);
+}
+
 /** Rupee text field -> integer paise. Accepts "1,00,000", "₹ 7000", "7000.50". */
-export const rupees = z
+export const rupees = cleaned(
+  z
   .string()
   .trim()
   .min(1, "Required")
@@ -32,7 +57,8 @@ export const rupees = z
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Enter a valid amount" });
       return z.NEVER;
     }
-  });
+  }),
+);
 
 export const dateField = z
   .string()
@@ -59,23 +85,27 @@ export const optionalDateField = z
   .optional()
   .transform((v) => (v ? new Date(`${v}T00:00:00`) : null));
 
-const optionalText = z
-  .string()
-  .trim()
-  .optional()
-  .transform((v) => (v == null || v === "" ? null : v));
+const optionalText = cleaned(
+  z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v == null || v === "" ? null : v)),
+);
 
 const optionalEmail = z
   .union([z.string().trim().email("Enter a valid email"), z.literal(""), z.undefined()])
   .transform((v) => v || null);
 
-export const phone = z
-  .string()
-  .trim()
-  .regex(/^[0-9+\-\s()]{7,15}$/, "Enter a valid phone number");
+export const phone = cleaned(
+  z
+    .string()
+    .trim()
+    .regex(/^[0-9+\-\s()]{7,15}$/, "Enter a valid phone number"),
+);
 
 export const customerSchema = z.object({
-  name: z.string().trim().min(2, "Name is required").max(120),
+  name: cleaned(z.string().trim().min(2, "Name is required").max(120)),
   // Optional: blank means the Latin name is used in both languages.
   nameMr: optionalText,
   phone,
@@ -108,7 +138,7 @@ export const collateralSchema = z.object({
   customerId: z.string().min(1),
   loanId: optionalText,
   assetType: z.enum(ASSET_TYPES),
-  description: z.string().trim().min(2, "Describe the asset"),
+  description: cleaned(z.string().trim().min(2, "Describe the asset")),
   value: rupees,
 });
 
@@ -116,8 +146,8 @@ export const loanSchema = z
   .object({
     customerId: z.string().min(1, "Select a customer"),
     principal: rupees,
-    interestRatePct: z.coerce.number().min(0, "Cannot be negative").max(100, "Too high"),
-    tenure: z.coerce.number().int().min(1, "At least 1 EMI").max(520, "Too many EMIs"),
+    interestRatePct: cleaned(z.coerce.number().min(0, "Cannot be negative").max(100, "Too high")),
+    tenure: cleaned(z.coerce.number().int().min(1, "At least 1 EMI").max(520, "Too many EMIs")),
     frequency: z.enum(LOAN_FREQUENCIES),
     structure: z.enum(LOAN_STRUCTURES),
     disbursedOn: dateField,
@@ -142,13 +172,13 @@ export const paymentSchema = z.object({
 });
 
 export const investorSchema = z.object({
-  name: z.string().trim().min(2, "Name is required").max(120),
+  name: cleaned(z.string().trim().min(2, "Name is required").max(120)),
   // Optional: blank means the Latin name is used in both languages.
   nameMr: optionalText,
   phone,
   email: optionalEmail,
   type: z.enum(INVESTOR_TYPES),
-  interestRatePct: z.coerce.number().min(0).max(100),
+  interestRatePct: cleaned(z.coerce.number().min(0).max(100)),
   address: optionalText,
 });
 
@@ -170,7 +200,7 @@ export const expenseSchema = z.object({
 });
 
 export const userSchema = z.object({
-  name: z.string().trim().min(2, "Name is required").max(120),
+  name: cleaned(z.string().trim().min(2, "Name is required").max(120)),
   email: z.string().trim().email("Enter a valid email").toLowerCase(),
   role: z.enum(ROLES),
   investorId: optionalText,

@@ -23,6 +23,7 @@ import { formatMoney } from "@/lib/money";
 import { displayName } from "@/lib/display-name";
 import { LOCALE_TAG } from "@/lib/i18n";
 import { getTranslate } from "@/lib/locale";
+import { cleanInput } from "@/lib/validators";
 import { getSessionUser, requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Payments" };
@@ -36,7 +37,10 @@ export default async function PaymentsPage({
   const tag = LOCALE_TAG[t.locale];
   const session = await getSessionUser();
   const isAdmin = session?.role === "ADMIN";
-  const { q = "", mode = "all" } = await searchParams;
+  const { q: rawQuery = "", mode = "all" } = await searchParams;
+  // Cleaned like stored input, so a search typed with Devanagari digits or
+  // a differently-composed letter still matches what was saved.
+  const q = cleanInput(rawQuery);
 
   const monthStart = startOfMonth(new Date());
 
@@ -49,6 +53,7 @@ export default async function PaymentsPage({
               OR: [
                 { loan: { code: { contains: q } } },
                 { loan: { customer: { name: { contains: q } } } },
+                { loan: { customer: { nameMr: { contains: q } } } },
                 { reference: { contains: q } },
               ],
             }
