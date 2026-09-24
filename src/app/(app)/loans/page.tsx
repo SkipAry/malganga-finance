@@ -19,23 +19,28 @@ import { db } from "@/lib/db";
 import { formatDate } from "@/lib/dates";
 import { isOverdue } from "@/lib/loan-service";
 import { formatMoney, pct } from "@/lib/money";
+import { displayName } from "@/lib/display-name";
+import type { MessageKey } from "@/lib/i18n";
+import { LOCALE_TAG } from "@/lib/i18n";
+import { getTranslate } from "@/lib/locale";
 import { requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Loans" };
 
 const TABS = [
-  ["ACTIVE", "Active"],
-  ["CLOSED", "Closed"],
-  ["DEFAULTED", "Defaulted"],
-  ["all", "All"],
-] as const;
+  ["ACTIVE", "loanStatus.ACTIVE"],
+  ["CLOSED", "loanStatus.CLOSED"],
+  ["DEFAULTED", "loanStatus.DEFAULTED"],
+  ["all", "common.all"],
+] as const satisfies readonly (readonly [string, MessageKey])[];
 
 export default async function LoansPage({
   searchParams,
 }: {
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
-  await requireStaff();
+  const [, t] = await Promise.all([requireStaff(), getTranslate()]);
+  const tag = LOCALE_TAG[t.locale];
   const { q = "", status = "ACTIVE" } = await searchParams;
 
   const loans = await db.loan.findMany({
@@ -52,7 +57,7 @@ export default async function LoansPage({
         : {}),
     },
     include: {
-      customer: { select: { id: true, name: true, code: true } },
+      customer: { select: { id: true, name: true, nameMr: true, code: true } },
       installments: { select: { dueDate: true, totalPaise: true, paidPaise: true, status: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -64,44 +69,44 @@ export default async function LoansPage({
   return (
     <>
       <PageHeader
-        title="Loans"
-        subtitle={`${loans.length} loan${loans.length === 1 ? "" : "s"}`}
+        title={t("loans.title")}
+        subtitle={t.plural(loans.length, "loans.count.one", "loans.count.other")}
         actions={
           <LinkButton href="/loans/new" variant="primary">
-            New loan
+            {t("dashboard.newLoan")}
           </LinkButton>
         }
       />
 
       <Card>
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
-          <SearchBar placeholder="Search loan code, customer or phone…" />
+          <SearchBar placeholder={t("loans.search")} />
           <FilterTabs
             basePath="/loans"
             param="status"
             value={status}
             searchParams={{ q }}
-            options={TABS.map(([value, label]) => ({ value, label }))}
+            options={TABS.map(([value, key]) => ({ value, label: t(key) }))}
           />
         </div>
 
         {loans.length === 0 ? (
           <EmptyState
-            title={q ? "No matching loans" : "No loans here"}
-            description={q ? "Try another search." : "Disburse a loan to see it listed."}
-            action={!q ? <LinkButton href="/loans/new" variant="primary">New loan</LinkButton> : null}
+            title={q ? t("loans.noMatch") : t("loans.noneTitle")}
+            description={q ? t("payments.trySearch") : t("loans.noneBody")}
+            action={!q ? <LinkButton href="/loans/new" variant="primary">{t("dashboard.newLoan")}</LinkButton> : null}
           />
         ) : (
           <Table>
             <thead>
               <tr>
-                <Th>Loan</Th>
-                <Th>Customer</Th>
-                <Th>Terms</Th>
-                <Th align="right">Disbursed</Th>
-                <Th align="right">Outstanding</Th>
-                <Th>Repayment</Th>
-                <Th align="right">Status</Th>
+                <Th>{t("th.loan")}</Th>
+                <Th>{t("th.customer")}</Th>
+                <Th>{t("th.terms")}</Th>
+                <Th align="right">{t("th.disbursed")}</Th>
+                <Th align="right">{t("th.outstanding")}</Th>
+                <Th>{t("th.repayment")}</Th>
+                <Th align="right">{t("th.status")}</Th>
               </tr>
             </thead>
             <tbody>
@@ -118,20 +123,26 @@ export default async function LoansPage({
                         {loan.code}
                       </Link>
                       <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
-                        {formatDate(loan.disbursedOn)}
+                        {formatDate(loan.disbursedOn, tag)}
                       </span>
                     </Td>
                     <Td>
                       <Link href={`/customers/${loan.customerId}`} className="hover:underline">
-                        {loan.customer.name}
+                        {displayName(loan.customer, t.locale)}
                       </Link>
                     </Td>
                     <Td>
                       <span className="text-sm">
-                        {loan.tenure} × {loan.frequency === "WEEKLY" ? "weekly" : "monthly"}
+                        {t("loans.terms", {
+                          n: loan.tenure,
+                          frequency:
+                            loan.frequency === "WEEKLY"
+                              ? t("frequency.weekly.lower")
+                              : t("frequency.monthly.lower"),
+                        })}
                       </span>
                       <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
-                        {loan.interestRatePct}% / month
+                        {t("loans.ratePerMonth", { rate: loan.interestRatePct })}
                       </span>
                     </Td>
                     <Td align="right">{formatMoney(loan.netDisbursedPaise)}</Td>
@@ -142,7 +153,7 @@ export default async function LoansPage({
                       <div className="w-28">
                         <Progress value={pct(paid, total)} tone={overdue ? "risk" : "money"} />
                         <span className="mt-1 block text-xs tnum" style={{ color: "var(--text-faint)" }}>
-                          {Math.round(pct(paid, total))}% repaid
+                          {t("loans.pctRepaid", { pct: Math.round(pct(paid, total)) })}
                         </span>
                       </div>
                     </Td>

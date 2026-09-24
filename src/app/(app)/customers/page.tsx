@@ -18,6 +18,9 @@ import { db } from "@/lib/db";
 import { formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { isOverdue } from "@/lib/loan-service";
+import { displayName } from "@/lib/display-name";
+import { LOCALE_TAG } from "@/lib/i18n";
+import { getTranslate } from "@/lib/locale";
 import { requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Customers" };
@@ -27,7 +30,8 @@ export default async function CustomersPage({
 }: {
   searchParams: Promise<{ q?: string; status?: string }>;
 }) {
-  await requireStaff();
+  const [, t] = await Promise.all([requireStaff(), getTranslate()]);
+  const tag = LOCALE_TAG[t.locale];
   const { q = "", status = "active" } = await searchParams;
 
   const customers = await db.customer.findMany({
@@ -63,49 +67,49 @@ export default async function CustomersPage({
   return (
     <>
       <PageHeader
-        title="Customers"
-        subtitle={`${customers.length} record${customers.length === 1 ? "" : "s"}`}
+        title={t("customers.title")}
+        subtitle={t.plural(customers.length, "customers.count.one", "customers.count.other")}
         actions={
           <LinkButton href="/customers/new" variant="primary">
-            Add customer
+            {t("customers.add")}
           </LinkButton>
         }
       />
 
       <Card>
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
-          <SearchBar placeholder="Search name, phone, code or shop…" />
+          <SearchBar placeholder={t("customers.search")} />
           <FilterTabs
             basePath="/customers"
             param="status"
             value={status}
             searchParams={{ q }}
             options={[
-              { value: "active", label: "Active" },
-              { value: "inactive", label: "Inactive" },
-              { value: "all", label: "All" },
+              { value: "active", label: t("customers.active") },
+              { value: "inactive", label: t("customers.inactive") },
+              { value: "all", label: t("common.all") },
             ]}
           />
         </div>
 
         {customers.length === 0 ? (
           <EmptyState
-            title={q ? "No matching customers" : "No customers yet"}
+            title={q ? t("customers.noMatch") : t("customers.noneTitle")}
             description={
-              q ? "Try a different name, phone number or code." : "Onboard your first borrower to get started."
+              q ? t("customers.noMatchBody") : t("customers.noneBody")
             }
-            action={!q ? <LinkButton href="/customers/new" variant="primary">Add customer</LinkButton> : null}
+            action={!q ? <LinkButton href="/customers/new" variant="primary">{t("customers.add")}</LinkButton> : null}
           />
         ) : (
           <Table>
             <thead>
               <tr>
-                <Th>Customer</Th>
-                <Th>Contact</Th>
-                <Th align="center">Loans</Th>
-                <Th align="right">Outstanding</Th>
-                <Th align="right">Overdue</Th>
-                <Th>Onboarded</Th>
+                <Th>{t("th.customer")}</Th>
+                <Th>{t("th.contact")}</Th>
+                <Th align="center">{t("th.loans")}</Th>
+                <Th align="right">{t("th.outstanding")}</Th>
+                <Th align="right">{t("tile.overdue")}</Th>
+                <Th>{t("th.onboarded")}</Th>
               </tr>
             </thead>
             <tbody>
@@ -126,13 +130,13 @@ export default async function CustomersPage({
                   <Tr key={c.id}>
                     <Td>
                       <Link href={`/customers/${c.id}`} className="font-medium hover:underline">
-                        {c.name}
+                        {displayName(c, t.locale)}
                       </Link>
                       <span className="ml-2 text-xs" style={{ color: "var(--text-faint)" }}>
                         {c.code}
                       </span>
                       {!c.isActive ? (
-                        <Badge className="ml-2">Inactive</Badge>
+                        <Badge className="ml-2">{t("customers.inactive")}</Badge>
                       ) : null}
                       {c.shopName ? (
                         <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
@@ -154,7 +158,7 @@ export default async function CustomersPage({
                       {c.loans.length}
                       {activeLoans ? (
                         <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
-                          {activeLoans} active
+                          {t("customers.activeLoans", { n: activeLoans })}
                         </span>
                       ) : null}
                     </Td>
@@ -162,7 +166,7 @@ export default async function CustomersPage({
                     <Td align="right" className={overdue ? "font-semibold text-ontone-risk" : undefined}>
                       {overdue ? formatMoney(overdue) : "—"}
                     </Td>
-                    <Td>{formatDate(c.createdAt)}</Td>
+                    <Td>{formatDate(c.createdAt, tag)}</Td>
                   </Tr>
                 );
               })}
