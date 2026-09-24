@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { MAX_UPLOAD_BYTES } from "@/lib/downscale-image";
 import { nextCode } from "@/lib/loan-service";
-import { assertStaff, recordAudit } from "@/lib/session";
+import { assertAdmin, assertStaff, recordAudit } from "@/lib/session";
 import {
   collateralSchema,
   customerSchema,
@@ -49,7 +49,9 @@ export async function saveCustomer(_prev: FormState, formData: FormData): Promis
  * ledger has to stay reconstructable — so the record is deactivated instead.
  */
 export async function removeCustomer(formData: FormData): Promise<void> {
-  const user = await assertStaff();
+  // Administrators only. Removing a borrower takes their KYC scans, phone
+  // numbers and collateral records with it, so it is not a field operation.
+  const user = await assertAdmin();
   const id = String(formData.get("id"));
 
   const loans = await db.loan.count({ where: { customerId: id } });
@@ -66,7 +68,8 @@ export async function removeCustomer(formData: FormData): Promise<void> {
 }
 
 export async function reactivateCustomer(formData: FormData): Promise<void> {
-  const user = await assertStaff();
+  // Paired with removeCustomer: whoever can deactivate can restore.
+  const user = await assertAdmin();
   const id = String(formData.get("id"));
   await db.customer.update({ where: { id }, data: { isActive: true } });
   await recordAudit(user.id, "REACTIVATE", "Customer", id);

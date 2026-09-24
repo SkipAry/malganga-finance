@@ -39,7 +39,11 @@ export async function generateMetadata({
 }
 
 export default async function CustomerPage({ params }: { params: Promise<{ id: string }> }) {
-  await requireStaff();
+  // Agents work this page every day but must not be able to remove a
+  // borrower; the action refuses them too, this only avoids showing a
+  // button that would fail.
+  const viewer = await requireStaff();
+  const isAdmin = viewer.role === "ADMIN";
   const { id } = await params;
 
   const customer = await db.customer.findUnique({
@@ -93,7 +97,7 @@ export default async function CustomerPage({ params }: { params: Promise<{ id: s
         actions={
           <>
             <LinkButton href={`/customers/${customer.id}/edit`}>Edit</LinkButton>
-            {customer.isActive ? (
+            {!isAdmin ? null : customer.isActive ? (
               <form action={removeCustomer}>
                 <input type="hidden" name="id" value={customer.id} />
                 <ConfirmSubmit
