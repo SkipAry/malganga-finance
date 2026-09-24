@@ -16,7 +16,7 @@ export default async function LoginPage() {
       {/* Brand panel — hidden on small screens where it would only push the form down. */}
       <aside
         className="relative hidden flex-col justify-between overflow-hidden p-12 lg:flex"
-        style={{ background: "linear-gradient(150deg,#0f1621 0%,#152238 55%,#1d3ed8 190%)" }}
+        style={{ background: "linear-gradient(150deg,#2a1206 0%,#7c2d12 55%,#ea580c 190%)" }}
       >
         <div className="flex items-center gap-3">
           <span

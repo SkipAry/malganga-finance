@@ -20,22 +20,22 @@
   --color-ink-900: #141922;
   --color-ink-950: #0b0e14;
 
-  --color-brand-50: #eef4ff;
-  --color-brand-100: #dbe7fe;
-  --color-brand-200: #bfd3fe;
-  --color-brand-300: #93b4fd;
-  --color-brand-400: #6090fa;
-  --color-brand-500: #3b6df6;
-  --color-brand-600: #2450eb;
-  --color-brand-700: #1d3ed8;
-  --color-brand-800: #1e35af;
-  --color-brand-900: #1e318a;
+  --color-brand-50: #fff7ed;
+  --color-brand-100: #ffedd5;
+  --color-brand-200: #fed7aa;
+  --color-brand-300: #fdba74;
+  --color-brand-400: #fb923c;
+  --color-brand-500: #f97316;
+  --color-brand-600: #ea580c;
+  --color-brand-700: #c2410c;
+  --color-brand-800: #9a3412;
+  --color-brand-900: #7c2d12;
 
   --color-money-500: #0e9f6e;
   --color-money-600: #057a55;
   --color-money-100: #def7ec;
 
-  --color-warn-500: #d97706;
+  --color-warn-500: #ca8a04;
   --color-warn-100: #fef3c7;
 
   --color-risk-500: #e02424;
@@ -85,44 +85,49 @@
 }
 
 :root {
-  --bg: #f4f6f9;
+  /* Warm white rather than pure #fff: cards are pure white and need to lift
+     off the page, and a flat white-on-white loses every card edge. */
+  --bg: #fdf8f4;
   --bg-elev: #ffffff;
-  --bg-sunken: #eef1f6;
-  --border: #e2e6ed;
-  --border-strong: #cfd5e0;
-  --text: #141922;
-  --text-muted: #4d5768;
+  --bg-sunken: #f7efe8;
+  --border: #ecdfd4;
+  --border-strong: #dcc7b5;
+  --text: #1c1917;
+  --text-muted: #57534e;
   /* Holds >=4.5:1 on --bg-elev AND on --bg-sunken (table row hover). */
-  --text-faint: #626c7e;
+  --text-faint: #6b625b;
   /* All >= 4.5:1 on --bg-elev for body-size text (WCAG 1.4.3). */
   --tone-money: #057a55;
-  --tone-warn: #92400e;
+  --tone-warn: #854d0e;
   --tone-risk: #c81e1e;
-  --tone-brand: #2450eb;
-  --sidebar: #0f1621;
-  --sidebar-text: #aab4c5;
-  --sidebar-active: #1c2735;
+  /* Brand text sits well below brand-500: #f97316 on white is 3.1:1, and even
+     brand-700 (#c2410c) only reaches 4.35:1 once the chip tint is behind it.
+     #b23c0b clears 4.5:1 on white, on the hover row and inside a chip. */
+  --tone-brand: #b23c0b;
+  --sidebar: #7c2d12;
+  --sidebar-text: #f6d8c3;
+  --sidebar-active: #9a3412;
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
   --shadow-pop: 0 12px 32px -8px rgba(16, 24, 40, 0.18);
   color-scheme: light;
 }
 
 :root[data-theme="dark"] {
-  --bg: #0b0e14;
-  --bg-elev: #141922;
-  --bg-sunken: #10151d;
-  --border: #242b37;
-  --border-strong: #333c4b;
-  --text: #e7eaf0;
-  --text-muted: #9aa4b6;
-  --text-faint: #8792a6;
+  --bg: #12100e;
+  --bg-elev: #1c1917;
+  --bg-sunken: #171412;
+  --border: #332d28;
+  --border-strong: #463e37;
+  --text: #f0ebe7;
+  --text-muted: #b0a59c;
+  --text-faint: #9d9188;
   --tone-money: #34d399;
-  --tone-warn: #fbbf24;
+  --tone-warn: #fcd34d;
   --tone-risk: #f87171;
-  --tone-brand: #6090fa;
-  --sidebar: #090c12;
-  --sidebar-text: #8b95a8;
-  --sidebar-active: #1a212c;
+  --tone-brand: #fb923c;
+  --sidebar: #1a0f09;
+  --sidebar-text: #c9ab97;
+  --sidebar-active: #3b1d0d;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
@@ -130,21 +135,21 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b0e14;
-    --bg-elev: #141922;
-    --bg-sunken: #10151d;
-    --border: #242b37;
-    --border-strong: #333c4b;
-    --text: #e7eaf0;
-    --text-muted: #9aa4b6;
-    --text-faint: #8792a6;
+    --bg: #12100e;
+    --bg-elev: #1c1917;
+    --bg-sunken: #171412;
+    --border: #332d28;
+    --border-strong: #463e37;
+    --text: #f0ebe7;
+    --text-muted: #b0a59c;
+    --text-faint: #9d9188;
     --tone-money: #34d399;
-    --tone-warn: #fbbf24;
+    --tone-warn: #fcd34d;
     --tone-risk: #f87171;
-    --tone-brand: #6090fa;
-    --sidebar: #090c12;
-    --sidebar-text: #8b95a8;
-    --sidebar-active: #1a212c;
+    --tone-brand: #fb923c;
+    --sidebar: #1a0f09;
+    --sidebar-text: #c9ab97;
+    --sidebar-active: #3b1d0d;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
     color-scheme: dark;
@@ -247,7 +252,7 @@ td a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-brand-500);
+  outline: 2px solid var(--color-brand-600);
   outline-offset: 2px;
   border-radius: 6px;
 }

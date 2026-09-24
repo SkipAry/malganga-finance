@@ -76,6 +76,8 @@ export const phone = z
 
 export const customerSchema = z.object({
   name: z.string().trim().min(2, "Name is required").max(120),
+  // Optional: blank means the Latin name is used in both languages.
+  nameMr: optionalText,
   phone,
   altPhone: optionalText,
   email: optionalEmail,
@@ -141,6 +143,8 @@ export const paymentSchema = z.object({
 
 export const investorSchema = z.object({
   name: z.string().trim().min(2, "Name is required").max(120),
+  // Optional: blank means the Latin name is used in both languages.
+  nameMr: optionalText,
   phone,
   email: optionalEmail,
   type: z.enum(INVESTOR_TYPES),

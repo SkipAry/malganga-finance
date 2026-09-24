@@ -46,6 +46,10 @@ model Customer {
   id       String    @id @default(cuid())
   code     String    @unique
   name     String
+  /// Optional Devanagari spelling, shown when the interface is in Marathi.
+  /// Typed by staff rather than transliterated: a borrower's name is identity
+  /// data on a lending ledger, and a guessed spelling is worse than English.
+  nameMr   String?
   phone    String
   altPhone String?
   email    String?
@@ -184,6 +188,8 @@ model Investor {
   id              String   @id @default(cuid())
   code            String   @unique
   name            String
+  /// Optional Devanagari spelling; see Customer.nameMr.
+  nameMr          String?
   phone           String
   email           String?
   type            String // INTERNAL | EXTERNAL

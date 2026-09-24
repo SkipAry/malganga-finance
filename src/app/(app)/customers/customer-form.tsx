@@ -11,6 +11,7 @@ import { toInputDate } from "@/lib/dates";
 export type CustomerFormValues = {
   id?: string;
   name?: string;
+  nameMr?: string | null;
   phone?: string;
   altPhone?: string | null;
   email?: string | null;
@@ -42,6 +43,20 @@ export function CustomerForm({ values = {} }: { values?: CustomerFormValues }) {
         <div className="grid gap-4 p-5 sm:grid-cols-2">
           <Field label="Full name" htmlFor="name" error={e.name} required>
             <Input id="name" name="name" defaultValue={values.name ?? ""} required autoFocus />
+          </Field>
+          <Field
+            label="Name in Marathi"
+            htmlFor="nameMr"
+            error={e.nameMr}
+            hint="Optional. Shown when the interface is set to Marathi."
+          >
+            <Input
+              id="nameMr"
+              name="nameMr"
+              lang="mr"
+              defaultValue={values.nameMr ?? ""}
+              placeholder="उदित गरूड"
+            />
           </Field>
           <Field label="Mobile number" htmlFor="phone" error={e.phone} required>
             <Input id="phone" name="phone" inputMode="tel" defaultValue={values.phone ?? ""} required />

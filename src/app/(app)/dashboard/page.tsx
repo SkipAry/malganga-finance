@@ -19,6 +19,7 @@ import { db } from "@/lib/db";
 import { dueLabel, formatDate } from "@/lib/dates";
 import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { collectionQueue, monthlyTrend, portfolioSummary, type TrendPoint } from "@/lib/reports";
+import { displayName } from "@/lib/display-name";
 import { LOCALE_TAG, type Translate } from "@/lib/i18n";
 import { getTranslate } from "@/lib/locale";
 import { requireStaff } from "@/lib/session";
@@ -68,7 +69,7 @@ export default async function DashboardPage() {
     db.payment.findMany({
       take: 6,
       orderBy: [{ receivedOn: "desc" }, { createdAt: "desc" }],
-      include: { loan: { include: { customer: { select: { name: true } } } } },
+      include: { loan: { include: { customer: { select: { name: true, nameMr: true } } } } },
     }),
   ]);
 
@@ -205,7 +206,7 @@ export default async function DashboardPage() {
                   <Tr key={row.id}>
                     <Td>
                       <Link href={`/loans/${row.loanId}`} className="font-medium hover:underline">
-                        {row.loan.customer.name}
+                        {displayName(row.loan.customer, t.locale)}
                       </Link>
                       <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         {row.loan.code} · EMI {row.seq}
@@ -268,7 +269,7 @@ export default async function DashboardPage() {
                   <Tr key={p.id}>
                     <Td>
                       <Link href={`/loans/${p.loanId}`} className="font-medium hover:underline">
-                        {p.loan.customer.name}
+                        {displayName(p.loan.customer, t.locale)}
                       </Link>
                       <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
                         {p.loan.code}
