@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "db:push": "prisma db push",
     "db:seed": "tsx prisma/seed.ts",
-    "test": "tsx src/lib/emi.test.ts && tsx src/lib/downscale-image.test.ts && tsx src/lib/notify.test.ts",
+    "test": "tsx src/lib/emi.test.ts && tsx src/lib/downscale-image.test.ts && tsx src/lib/notify.test.ts && tsx src/lib/user-deletion.test.ts",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "create:admin": "tsx prisma/create-admin.ts",

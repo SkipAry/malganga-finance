@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { addDays, startOfDay } from "@/lib/dates";
 import { dispatcher, OVERDUE_REPEAT_DAYS } from "@/lib/notify";
+import { userDeletionBlocker } from "@/lib/user-deletion";
 import { assertAdmin, assertStaff, recordAudit } from "@/lib/session";
 import { expenseSchema, fieldErrors, userSchema } from "@/lib/validators";
 import type { FormState } from "./auth";
@@ -90,6 +91,46 @@ export async function saveUser(_prev: FormState, formData: FormData): Promise<Fo
 
   revalidatePath("/users");
   return { message: id ? "User updated." : "User created." };
+}
+
+/**
+ * Deletes a login that has never been used. Anything with history is refused
+ * and must be disabled instead - see src/lib/user-deletion.ts for why.
+ */
+export async function deleteUser(formData: FormData): Promise<void> {
+  const admin = await assertAdmin();
+  const id = String(formData.get("id"));
+
+  const target = await db.user.findUnique({
+    where: { id },
+    select: { email: true, name: true, role: true, isActive: true },
+  });
+  if (!target) throw new Error("User not found");
+
+  const [auditEntries, paymentsRecorded, expensesRecorded, activeAdmins] = await Promise.all([
+    db.auditLog.count({ where: { userId: id } }),
+    db.payment.count({ where: { recordedById: id } }),
+    db.expense.count({ where: { recordedById: id } }),
+    db.user.count({ where: { role: "ADMIN", isActive: true } }),
+  ]);
+
+  const blocker = userDeletionBlocker({
+    isSelf: id === admin.id,
+    isLastActiveAdmin: target.role === "ADMIN" && target.isActive && activeAdmins <= 1,
+    auditEntries,
+    paymentsRecorded,
+    expensesRecorded,
+  });
+  if (blocker) throw new Error(blocker);
+
+  await db.user.delete({ where: { id } });
+  // Logged against the acting admin: the deleted row cannot hold its own record.
+  await recordAudit(admin.id, "DELETE", "User", id, {
+    email: target.email,
+    name: target.name,
+    role: target.role,
+  });
+  revalidatePath("/users");
 }
 
 export async function toggleUserActive(formData: FormData): Promise<void> {

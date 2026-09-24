@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { UserForm } from "./user-form";
-import { toggleUserActive } from "@/actions/operations";
+import { deleteUser, toggleUserActive } from "@/actions/operations";
 import { ConfirmSubmit } from "@/components/confirm-submit";
 import {
   Badge,
@@ -23,7 +23,10 @@ export const metadata: Metadata = { title: "Users & roles" };
 export default async function UsersPage() {
   const admin = await requireAdmin();
 
-  const [users, investors, auditLog] = await Promise.all([
+  // Counted so a login that is named on any record offers Disable only. The
+  // action enforces this too; the UI just does not dangle a button that will
+  // be refused.
+  const [users, investors, auditLog, audited, paid, spent] = await Promise.all([
     db.user.findMany({
       include: { investor: { select: { name: true, code: true } } },
       orderBy: [{ role: "asc" }, { name: "asc" }],
@@ -38,7 +41,18 @@ export default async function UsersPage() {
       orderBy: { createdAt: "desc" },
       include: { user: { select: { name: true } } },
     }),
+    db.auditLog.groupBy({ by: ["userId"], _count: true }),
+    db.payment.groupBy({ by: ["recordedById"], _count: true }),
+    db.expense.groupBy({ by: ["recordedById"], _count: true }),
   ]);
+
+  const linked = new Map<string, number>();
+  const tally = (key: string | null, n: number) => {
+    if (key) linked.set(key, (linked.get(key) ?? 0) + n);
+  };
+  for (const r of audited) tally(r.userId, r._count);
+  for (const r of paid) tally(r.recordedById, r._count);
+  for (const r of spent) tally(r.recordedById, r._count);
 
   return (
     <>
@@ -91,20 +105,34 @@ export default async function UsersPage() {
                     </Td>
                     <Td align="right">
                       {u.id === admin.id ? null : (
-                        <form action={toggleUserActive}>
-                          <input type="hidden" name="id" value={u.id} />
-                          <ConfirmSubmit
-                            size="sm"
-                            variant="ghost"
-                            confirm={
-                              u.isActive
-                                ? `Disable ${u.name}? They will not be able to sign in.`
-                                : `Re-enable ${u.name}?`
-                            }
-                          >
-                            {u.isActive ? "Disable" : "Enable"}
-                          </ConfirmSubmit>
-                        </form>
+                        <div className="flex items-center justify-end gap-1">
+                          <form action={toggleUserActive}>
+                            <input type="hidden" name="id" value={u.id} />
+                            <ConfirmSubmit
+                              size="sm"
+                              variant="ghost"
+                              confirm={
+                                u.isActive
+                                  ? `Disable ${u.name}? They will not be able to sign in.`
+                                  : `Re-enable ${u.name}?`
+                              }
+                            >
+                              {u.isActive ? "Disable" : "Enable"}
+                            </ConfirmSubmit>
+                          </form>
+                          {(linked.get(u.id) ?? 0) === 0 ? (
+                            <form action={deleteUser}>
+                              <input type="hidden" name="id" value={u.id} />
+                              <ConfirmSubmit
+                                size="sm"
+                                variant="danger"
+                                confirm={`Permanently delete ${u.name} (${u.email})? This login has never been used, so nothing loses its record.`}
+                              >
+                                Delete
+                              </ConfirmSubmit>
+                            </form>
+                          ) : null}
+                        </div>
                       )}
                     </Td>
                   </Tr>
