@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CollectionHealthCard } from "@/components/collection-health-card";
 import { StatTile } from "@/components/stat-tile";
 import { InstallmentStatusBadge, ModeBadge } from "@/components/status-badges";
 import { TrendChartLazy } from "@/components/trend-chart-lazy";
@@ -16,9 +17,15 @@ import {
   Tr,
 } from "@/components/ui/primitives";
 import { db } from "@/lib/db";
-import { dueLabel, formatDate } from "@/lib/dates";
+import { dueLabel, formatDate, startOfDay, startOfMonth } from "@/lib/dates";
 import { formatMoney, formatMoneyCompact } from "@/lib/money";
-import { collectionQueue, monthlyTrend, portfolioSummary, type TrendPoint } from "@/lib/reports";
+import {
+  collectionHealth,
+  collectionQueue,
+  monthlyTrend,
+  portfolioSummary,
+  type TrendPoint,
+} from "@/lib/reports";
 import { displayName } from "@/lib/display-name";
 import { LOCALE_TAG, type Translate } from "@/lib/i18n";
 import { getTranslate } from "@/lib/locale";
@@ -62,7 +69,7 @@ export default async function DashboardPage() {
   const tag = LOCALE_TAG[t.locale];
   const today = new Date();
 
-  const [summary, trend, queue, recentPayments] = await Promise.all([
+  const [summary, trend, queue, recentPayments, health] = await Promise.all([
     portfolioSummary(today),
     monthlyTrend(6, today),
     collectionQueue(today, 7),
@@ -71,6 +78,7 @@ export default async function DashboardPage() {
       orderBy: [{ receivedOn: "desc" }, { createdAt: "desc" }],
       include: { loan: { include: { customer: { select: { name: true, nameMr: true } } } } },
     }),
+    collectionHealth(db, startOfDay(today), startOfMonth(today)),
   ]);
 
   const overdueRows = queue.filter((q) => q.overdue);
@@ -137,34 +145,17 @@ export default async function DashboardPage() {
       <section className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Card>
           <CardHeader title={t("card.cashMovement")} subtitle={trendSummary(trend, t)} />
-          <TrendChartLazy data={trend} />
+          <TrendChartLazy
+            data={trend}
+            labels={{
+              collected: t("chart.collected"),
+              disbursed: t("chart.disbursed"),
+              expenses: t("chart.expenses"),
+            }}
+          />
         </Card>
 
-        <Card>
-          <CardHeader title={t("card.bookSummary")} subtitle={t("card.bookSummary.sub")} />
-          <dl className="divide-y">
-            {[
-              [t("book.customers"), String(summary.customers), false],
-              [t("book.principal"), formatMoney(summary.principalOutPaise), false],
-              [t("book.collected"), formatMoney(summary.collectedPaise), true],
-              [t("book.investorCapital"), formatMoney(summary.investorCapitalPaise), false],
-              [t("book.paidBack"), formatMoney(summary.investorWithdrawnPaise), false],
-              [t("book.expenses"), formatMoney(summary.expensesPaise), false],
-            ].map(([label, value, emphasis]) => (
-              <div key={label as string} className="flex items-baseline justify-between gap-4 px-5 py-3">
-                <dt className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  {label}
-                </dt>
-                <dd
-                  className="text-base font-semibold tnum"
-                  style={emphasis ? { color: "var(--tone-money)" } : undefined}
-                >
-                  {value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        </Card>
+        <CollectionHealthCard health={health} t={t} />
       </section>
 
       <section className="mt-4 grid gap-4 xl:grid-cols-2">
@@ -287,6 +278,34 @@ export default async function DashboardPage() {
               </tbody>
             </Table>
           )}
+        </Card>
+      </section>
+
+      <section className="mt-4">
+        <Card>
+          <CardHeader title={t("card.bookSummary")} subtitle={t("card.bookSummary.sub")} />
+          <dl className="grid grid-cols-2 gap-px border-t sm:grid-cols-3 xl:grid-cols-6" style={{ background: "var(--border)" }}>
+            {[
+              [t("book.customers"), String(summary.customers), false],
+              [t("book.principal"), formatMoney(summary.principalOutPaise), false],
+              [t("book.collected"), formatMoney(summary.collectedPaise), true],
+              [t("book.investorCapital"), formatMoney(summary.investorCapitalPaise), false],
+              [t("book.paidBack"), formatMoney(summary.investorWithdrawnPaise), false],
+              [t("book.expenses"), formatMoney(summary.expensesPaise), false],
+            ].map(([label, value, emphasis]) => (
+              <div key={label as string} className="px-5 py-4" style={{ background: "var(--bg-elev)" }}>
+                <dt className="text-xs font-medium uppercase tracking-[0.06em]" style={{ color: "var(--text-faint)" }}>
+                  {label}
+                </dt>
+                <dd
+                  className="mt-1.5 text-lg font-semibold tnum"
+                  style={emphasis ? { color: "var(--tone-money)" } : undefined}
+                >
+                  {value}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </Card>
       </section>
     </>

@@ -107,6 +107,13 @@
   --sidebar: #7c2d12;
   --sidebar-text: #f6d8c3;
   --sidebar-active: #9a3412;
+  /* Chart series. Separate from the semantic tones on purpose: with an orange
+     brand, borrowing --tone-warn for a third line put two orange-brown lines
+     at dE00 13.8 - legible only with effort at 2px. Indigo for costs gives
+     every pair dE00 > 40, and each line clears 3:1 on the card (WCAG 1.4.11). */
+  --chart-collected: #057a55;
+  --chart-disbursed: #b23c0b;
+  --chart-expenses: #4f46e5;
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
   --shadow-pop: 0 12px 32px -8px rgba(16, 24, 40, 0.18);
   color-scheme: light;
@@ -128,6 +135,9 @@
   --sidebar: #1a0f09;
   --sidebar-text: #c9ab97;
   --sidebar-active: #3b1d0d;
+  --chart-collected: #34d399;
+  --chart-disbursed: #fb923c;
+  --chart-expenses: #a5b4fc;
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
   color-scheme: dark;
@@ -150,6 +160,9 @@
     --sidebar: #1a0f09;
     --sidebar-text: #c9ab97;
     --sidebar-active: #3b1d0d;
+    --chart-collected: #34d399;
+    --chart-disbursed: #fb923c;
+    --chart-expenses: #a5b4fc;
     --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-pop: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
     color-scheme: dark;

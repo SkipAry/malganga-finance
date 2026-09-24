@@ -82,8 +82,10 @@ export function daysBetween(a: Date, b: Date): number {
   return Math.round((startOfDay(b).getTime() - startOfDay(a).getTime()) / 86_400_000);
 }
 
-/** "3 days overdue" / "due in 2 days" / "due today" */
-/** Pass `t` to translate; without it the English wording is used. */
+/**
+ * "3 days overdue" / "due in 2 days" / "due today". Pass `t` to translate;
+ * without it the English wording is used.
+ */
 export function dueLabel(dueDate: Date, today = new Date(), t?: Translate): string {
   const d = daysBetween(today, dueDate);
   if (!t) {

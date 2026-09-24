@@ -33,9 +33,9 @@ const full = new Intl.NumberFormat("en-IN", {
  * men with a colour-vision deficiency (WCAG 1.4.1).
  */
 const SERIES = [
-  { key: "collected", name: "Collected", color: "var(--tone-money)", dash: undefined, fill: "url(#gCollected)" },
-  { key: "disbursed", name: "Disbursed", color: "var(--tone-brand)", dash: "7 4", fill: "url(#gDisbursed)" },
-  { key: "expenses", name: "Expenses", color: "var(--tone-warn)", dash: "2 3", fill: "none" },
+  { key: "collected", name: "Collected", color: "var(--chart-collected)", dash: undefined, fill: "url(#gCollected)" },
+  { key: "disbursed", name: "Disbursed", color: "var(--chart-disbursed)", dash: "7 4", fill: "url(#gDisbursed)" },
+  { key: "expenses", name: "Expenses", color: "var(--chart-expenses)", dash: "2 3", fill: "none" },
 ] as const;
 
 /**
@@ -57,7 +57,10 @@ function usePrefersReducedMotion(): boolean {
   return reduced;
 }
 
-export function TrendChart({ data }: { data: TrendPoint[] }) {
+/** Series names, resolved on the server - this component cannot read the locale cookie. */
+export type TrendLabels = Record<"collected" | "disbursed" | "expenses", string>;
+
+export function TrendChart({ data, labels }: { data: TrendPoint[]; labels: TrendLabels }) {
   const reducedMotion = usePrefersReducedMotion();
 
   return (
@@ -66,12 +69,12 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
         <AreaChart data={data} margin={{ top: 4, right: 12, left: 4, bottom: 0 }}>
           <defs>
             <linearGradient id="gCollected" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--tone-money)" stopOpacity={0.24} />
-              <stop offset="100%" stopColor="var(--tone-money)" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--chart-collected)" stopOpacity={0.24} />
+              <stop offset="100%" stopColor="var(--chart-collected)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="gDisbursed" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--tone-brand)" stopOpacity={0.18} />
-              <stop offset="100%" stopColor="var(--tone-brand)" stopOpacity={0} />
+              <stop offset="0%" stopColor="var(--chart-disbursed)" stopOpacity={0.18} />
+              <stop offset="100%" stopColor="var(--chart-disbursed)" stopOpacity={0} />
             </linearGradient>
           </defs>
 
@@ -114,7 +117,7 @@ export function TrendChart({ data }: { data: TrendPoint[] }) {
               key={s.key}
               type="monotone"
               dataKey={s.key}
-              name={s.name}
+              name={labels[s.key]}
               stroke={s.color}
               strokeWidth={2}
               strokeDasharray={s.dash}

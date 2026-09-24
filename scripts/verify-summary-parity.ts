@@ -14,13 +14,20 @@
  */
 import { PrismaClient } from "@prisma/client";
 
-import { addDays, startOfDay } from "../src/lib/dates";
+import { addDays, daysBetween, startOfDay, startOfMonth } from "../src/lib/dates";
 import { isOverdue } from "../src/lib/loan-service";
-import { installmentBuckets, type InstallmentBuckets } from "../src/lib/reports";
+import {
+  collectionHealth,
+  installmentBuckets,
+  type AgeingBucket,
+  type CollectionHealth,
+  type InstallmentBuckets,
+} from "../src/lib/reports";
 
 const db = new PrismaClient();
 const today = startOfDay(new Date());
 const weekEnd = addDays(today, 7);
+const monthStart = startOfMonth(today);
 
 /** The original implementation, kept verbatim as the reference. */
 function referenceBuckets(
@@ -46,6 +53,43 @@ function referenceBuckets(
 }
 
 /**
+ * Reference for collectionHealth, written with day arithmetic rather than the
+ * timestamp bounds the SQL uses - two formulations agreeing is evidence; one
+ * formulation checked against a copy of itself is not.
+ */
+function referenceHealth(
+  installments: { dueDate: Date; totalPaise: number; paidPaise: number; status: string }[],
+): CollectionHealth {
+  let dueThisMonthPaise = 0;
+  let collectedAgainstDuePaise = 0;
+  const ageing: CollectionHealth["ageing"] = {
+    d1_7: { paise: 0, count: 0 },
+    d8_30: { paise: 0, count: 0 },
+    d31: { paise: 0, count: 0 },
+  };
+
+  for (const inst of installments) {
+    const dayOfDue = startOfDay(inst.dueDate);
+    const inMonthSoFar = dayOfDue >= monthStart && dayOfDue <= today;
+    if (inst.status !== "WAIVED" && inMonthSoFar) {
+      dueThisMonthPaise += inst.totalPaise;
+      collectedAgainstDuePaise += Math.min(inst.paidPaise, inst.totalPaise);
+    }
+
+    const owed = inst.totalPaise - inst.paidPaise;
+    const open = inst.status === "PENDING" || inst.status === "PARTIAL";
+    if (open && owed > 0 && isOverdue(inst, today)) {
+      const late = daysBetween(inst.dueDate, today);
+      const bucket: AgeingBucket = late <= 7 ? "d1_7" : late <= 30 ? "d8_30" : "d31";
+      ageing[bucket].paise += owed;
+      ageing[bucket].count += 1;
+    }
+  }
+
+  return { dueThisMonthPaise, collectedAgainstDuePaise, ageing };
+}
+
+/**
  * One installment per interesting case. The day boundaries matter most: an
  * installment due at 23:59 today is not overdue, one due at 00:00 today is
  * not overdue, one due a second before midnight last night is.
@@ -64,6 +108,15 @@ function fixtures(): { offsetDays: number; hours: number; total: number; paid: n
     { offsetDays: -5, hours: 0, total: 500000, paid: 500000, status: "PENDING" }, // owed 0, must be ignored
     { offsetDays: -5, hours: 0, total: 500000, paid: 0, status: "PAID" }, // excluded by status
     { offsetDays: -5, hours: 0, total: 500000, paid: 0, status: "WAIVED" }, // excluded by status
+    // Ageing boundaries: 7 days late is the last day of the first bucket,
+    // 8 the first of the second, 31 the first of the third.
+    { offsetDays: -7, hours: 0, total: 110000, paid: 0, status: "PENDING" },
+    { offsetDays: -7, hours: 22, total: 120000, paid: 0, status: "PENDING" },
+    { offsetDays: -8, hours: 0, total: 130000, paid: 30000, status: "PARTIAL" },
+    { offsetDays: -31, hours: 0, total: 140000, paid: 0, status: "PENDING" },
+    { offsetDays: -90, hours: 9, total: 150000, paid: 0, status: "PENDING" },
+    // Overpaid EMI this month: must not lift the collection rate past 100%.
+    { offsetDays: -2, hours: 0, total: 300000, paid: 450000, status: "PAID" },
   ];
 }
 
@@ -124,6 +177,35 @@ async function main() {
         console.log(
           `  ${same ? "ok  " : "FAIL"}  ${key.padEnd(18)} loop=${expected[key]}  sql=${actual[key]}`,
         );
+      }
+
+      const all = await tx.installment.findMany({
+        select: { dueDate: true, totalPaise: true, paidPaise: true, status: true },
+      });
+      const expectHealth = referenceHealth(all);
+      const actualHealth = await collectionHealth(tx, today, monthStart);
+
+      const flat = (h: CollectionHealth): Record<string, number> => ({
+        dueThisMonth: h.dueThisMonthPaise,
+        collectedAgainstDue: h.collectedAgainstDuePaise,
+        "ageing 1-7 paise": h.ageing.d1_7.paise,
+        "ageing 1-7 count": h.ageing.d1_7.count,
+        "ageing 8-30 paise": h.ageing.d8_30.paise,
+        "ageing 8-30 count": h.ageing.d8_30.count,
+        "ageing 31+ paise": h.ageing.d31.paise,
+        "ageing 31+ count": h.ageing.d31.count,
+      });
+      const e = flat(expectHealth);
+      const a = flat(actualHealth);
+      console.log(`\nCollection health over ${all.length} installment(s)\n`);
+      for (const key of Object.keys(e)) {
+        const same = e[key] === a[key];
+        if (!same) mismatch = true;
+        console.log(`  ${same ? "ok  " : "FAIL"}  ${key.padEnd(20)} days=${e[key]}  sql=${a[key]}`);
+      }
+      if (actualHealth.collectedAgainstDuePaise > actualHealth.dueThisMonthPaise) {
+        mismatch = true;
+        console.log("  FAIL  collected exceeds due - overpayment leaked into the rate");
       }
 
       throw new Error("__rollback__");

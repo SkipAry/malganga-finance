@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 
 import type { TrendPoint } from "@/lib/reports";
+import type { TrendLabels } from "./trend-chart";
 
 /**
  * Recharts is roughly 100 kB - half of everything the dashboard downloads,
@@ -22,6 +23,6 @@ const TrendChart = dynamic(() => import("./trend-chart").then((m) => m.TrendChar
   ),
 });
 
-export function TrendChartLazy({ data }: { data: TrendPoint[] }) {
-  return <TrendChart data={data} />;
+export function TrendChartLazy({ data, labels }: { data: TrendPoint[]; labels: TrendLabels }) {
+  return <TrendChart data={data} labels={labels} />;
 }

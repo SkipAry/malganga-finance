@@ -96,6 +96,85 @@ export async function installmentBuckets(
   };
 }
 
+export type AgeingBucket = "d1_7" | "d8_30" | "d31";
+
+export type CollectionHealth = {
+  /** Everything that fell due from the 1st of the month to the end of today. */
+  dueThisMonthPaise: number;
+  /** How much of that has been paid, capped per EMI so an overpayment cannot lift the rate. */
+  collectedAgainstDuePaise: number;
+  /** Unpaid balances by how late they are. Buckets are exclusive and cover every overdue EMI. */
+  ageing: Record<AgeingBucket, { paise: number; count: number }>;
+};
+
+/**
+ * How well the book is being collected, as opposed to how big it is.
+ *
+ * The collection rate answers "of what we were owed this month, how much came
+ * in" - the number a lender manages by. Ageing splits arrears by lateness,
+ * because a week-late EMI is a reminder and a month-late one is a visit.
+ *
+ * Day boundaries follow isOverdue(): an EMI is n days late when its due date
+ * falls n days before the start of today. Waived EMIs are excluded from the
+ * rate entirely - forgiving a debt is not collecting it, and counting it as
+ * owed-but-unpaid would make a waiver look like a failure.
+ *
+ * `npm run verify:summary` checks this against a row-by-row reference.
+ */
+export async function collectionHealth(
+  client: Tx,
+  todayStart: Date,
+  monthStart: Date,
+): Promise<CollectionHealth> {
+  const tomorrow = addDays(todayStart, 1);
+  const week = addDays(todayStart, -7);
+  const month = addDays(todayStart, -30);
+
+  const [rateRows, ageRows] = await Promise.all([
+    client.$queryRaw<{ due: bigint; paid: bigint }[]>`
+      SELECT
+        COALESCE(SUM("totalPaise"), 0) AS due,
+        COALESCE(SUM(LEAST("paidPaise", "totalPaise")), 0) AS paid
+      FROM "Installment"
+      WHERE "status" <> 'WAIVED'
+        AND "dueDate" >= ${monthStart}
+        AND "dueDate" < ${tomorrow}
+    `,
+    client.$queryRaw<
+      {
+        a1: bigint; n1: bigint;
+        a2: bigint; n2: bigint;
+        a3: bigint; n3: bigint;
+      }[]
+    >`
+      SELECT
+        COALESCE(SUM("totalPaise" - "paidPaise") FILTER (WHERE "dueDate" >= ${week}), 0) AS a1,
+        COUNT(*) FILTER (WHERE "dueDate" >= ${week}) AS n1,
+        COALESCE(SUM("totalPaise" - "paidPaise")
+          FILTER (WHERE "dueDate" >= ${month} AND "dueDate" < ${week}), 0) AS a2,
+        COUNT(*) FILTER (WHERE "dueDate" >= ${month} AND "dueDate" < ${week}) AS n2,
+        COALESCE(SUM("totalPaise" - "paidPaise") FILTER (WHERE "dueDate" < ${month}), 0) AS a3,
+        COUNT(*) FILTER (WHERE "dueDate" < ${month}) AS n3
+      FROM "Installment"
+      WHERE "status" IN ('PENDING', 'PARTIAL')
+        AND "totalPaise" > "paidPaise"
+        AND "dueDate" < ${todayStart}
+    `,
+  ]);
+
+  const r = rateRows[0];
+  const a = ageRows[0];
+  return {
+    dueThisMonthPaise: Number(r?.due ?? 0),
+    collectedAgainstDuePaise: Number(r?.paid ?? 0),
+    ageing: {
+      d1_7: { paise: Number(a?.a1 ?? 0), count: Number(a?.n1 ?? 0) },
+      d8_30: { paise: Number(a?.a2 ?? 0), count: Number(a?.n2 ?? 0) },
+      d31: { paise: Number(a?.a3 ?? 0), count: Number(a?.n3 ?? 0) },
+    },
+  };
+}
+
 export async function portfolioSummary(today = new Date()): Promise<PortfolioSummary> {
   const weekEnd = addDays(startOfDay(today), 7);
 

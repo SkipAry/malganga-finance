@@ -28,6 +28,16 @@ for (const locale of LOCALES) {
   }
 }
 
+/* ----------------------------------------------------------- Latin numerals */
+
+// Numbers stay English in both languages - a stated requirement, and the
+// reason is practical: Devanagari digits beside Latin-digit money columns
+// invite misreading when a figure is copied onto a paper receipt.
+const DEVANAGARI_DIGIT = /[०-९]/;
+for (const [key, text] of Object.entries(dictionary("mr"))) {
+  assert.ok(!DEVANAGARI_DIGIT.test(text), `mr "${key}" uses Devanagari digits: "${text}"`);
+}
+
 /* ------------------------------------------------------------ interpolation */
 
 assert.equal(format("{a} and {b}", { a: "x", b: "y" }), "x and y");

@@ -77,6 +77,11 @@ for (const [theme, selector] of [["light", LIGHT], ["dark", DARK]] as const) {
     checks.push({ label: `${theme} ${tone} chip`, fg, bg: chipBackground(fg, elev), min: 4.5 });
   }
 
+  // Chart lines are graphical objects, so 3:1 (WCAG 1.4.11) rather than 4.5.
+  for (const series of ["--chart-collected", "--chart-disbursed", "--chart-expenses"]) {
+    checks.push({ label: `${theme} ${series} line on card`, fg: token(selector, series), bg: elev, min: 3 });
+  }
+
   checks.push({
     label: `${theme} sidebar text on sidebar`,
     fg: token(selector, "--sidebar-text"),

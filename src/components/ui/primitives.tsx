@@ -351,14 +351,26 @@ export function Tr({ children, className }: { children: React.ReactNode; classNa
 
 /* --------------------------------------------------------------------- misc  */
 
-export function Progress({ value, tone = "money" }: { value: number; tone?: Tone }) {
+export function Progress({
+  value,
+  tone = "money",
+  label,
+  className,
+}: {
+  value: number;
+  tone?: Tone;
+  /** Accessible name; a progressbar without one is announced as a bare number. */
+  label?: string;
+  className?: string;
+}) {
   const barTone =
     tone === "risk" ? "bg-risk-500" : tone === "warn" ? "bg-warn-500" : "bg-money-500";
   return (
     <div
-      className="h-1.5 w-full overflow-hidden rounded-full"
+      className={cx("h-1.5 w-full overflow-hidden rounded-full", className)}
       style={{ background: "var(--bg-sunken)" }}
       role="progressbar"
+      aria-label={label}
       aria-valuenow={Math.round(value)}
       aria-valuemin={0}
       aria-valuemax={100}
