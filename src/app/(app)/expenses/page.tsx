@@ -23,6 +23,9 @@ import { formatDate, startOfMonth, startOfYear } from "@/lib/dates";
 import { EXPENSE_CATEGORY_LABEL, type ExpenseCategory } from "@/lib/enums";
 import { formatMoney } from "@/lib/money";
 import { expenseBreakdown } from "@/lib/reports";
+import type { MessageKey } from "@/lib/i18n";
+import { LOCALE_TAG } from "@/lib/i18n";
+import { getTranslate } from "@/lib/locale";
 import { getSessionUser, requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Expenses" };
@@ -32,7 +35,9 @@ export default async function ExpensesPage({
 }: {
   searchParams: Promise<{ category?: string }>;
 }) {
-  await requireStaff();
+  const [, t] = await Promise.all([requireStaff(), getTranslate()]);
+  const tag = LOCALE_TAG[t.locale];
+  const categoryLabel = (c: string) => t(`expenseCategory.${c}` as MessageKey);
   const session = await getSessionUser();
   const isAdmin = session?.role === "ADMIN";
   const { category = "all" } = await searchParams;
@@ -55,27 +60,26 @@ export default async function ExpensesPage({
 
   return (
     <>
-      <PageHeader title="Expenses" subtitle="Day-to-day running costs of the business" />
+      <PageHeader title={t("expenses.title")} subtitle={t("expenses.sub")} />
 
       <section className="grid gap-4 sm:grid-cols-3">
         <StatTile
-          label="This month"
+          label={t("expenses.thisMonth")}
           value={formatMoney(monthAgg._sum.amountPaise ?? 0)}
-          hint={`${monthAgg._count} entr${monthAgg._count === 1 ? "y" : "ies"}`}
+          hint={t.plural(monthAgg._count, "expenses.entries.one", "expenses.entries.other")}
           tone="warn"
         />
-        <StatTile label="This year" value={formatMoney(yearAgg._sum.amountPaise ?? 0)} />
+        <StatTile label={t("expenses.thisYear")} value={formatMoney(yearAgg._sum.amountPaise ?? 0)} />
         <StatTile
-          label="Largest category"
+          label={t("expenses.largestCategory")}
           value={
             breakdown.length
-              ? EXPENSE_CATEGORY_LABEL[
-                  [...breakdown].sort((a, b) => b.amountPaise - a.amountPaise)[0]
-                    .category as ExpenseCategory
-                ]
+              ? categoryLabel(
+                  [...breakdown].sort((a, b) => b.amountPaise - a.amountPaise)[0].category,
+                )
               : "—"
           }
-          hint="This month"
+          hint={t("expenses.thisMonth")}
         />
       </section>
 
@@ -87,36 +91,39 @@ export default async function ExpensesPage({
               param="category"
               value={category}
               options={[
-                { value: "all", label: "All" },
+                { value: "all", label: t("common.all") },
                 ...(Object.keys(EXPENSE_CATEGORY_LABEL) as ExpenseCategory[]).map((c) => ({
                   value: c,
-                  label: EXPENSE_CATEGORY_LABEL[c],
+                  label: categoryLabel(c),
                 })),
               ]}
             />
           </div>
 
           {expenses.length === 0 ? (
-            <EmptyState title="No expenses recorded" description="Log the first expense on the right." />
+            <EmptyState
+              title={t("expenses.emptyTitle")}
+              description={t("expenses.emptyBody")}
+            />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Date</Th>
-                  <Th>Category</Th>
-                  <Th>Description</Th>
-                  <Th align="right">Amount</Th>
-                  <Th>Mode</Th>
-                  <Th>By</Th>
-                  {isAdmin ? <Th><span className="sr-only">Actions</span></Th> : null}
+                  <Th>{t("th.date")}</Th>
+                  <Th>{t("th.category")}</Th>
+                  <Th>{t("th.description")}</Th>
+                  <Th align="right">{t("th.amount")}</Th>
+                  <Th>{t("th.mode")}</Th>
+                  <Th>{t("th.by")}</Th>
+                  {isAdmin ? <Th><span className="sr-only">{t("th.actions")}</span></Th> : null}
                 </tr>
               </thead>
               <tbody>
                 {expenses.map((x) => (
                   <Tr key={x.id}>
-                    <Td>{formatDate(x.date)}</Td>
+                    <Td>{formatDate(x.date, tag)}</Td>
                     <Td>
-                      <Badge>{EXPENSE_CATEGORY_LABEL[x.category as ExpenseCategory] ?? x.category}</Badge>
+                      <Badge>{categoryLabel(x.category)}</Badge>
                     </Td>
                     <Td className="max-w-xs truncate">{x.description}</Td>
                     <Td align="right" className="font-semibold">{formatMoney(x.amountPaise)}</Td>
@@ -128,8 +135,8 @@ export default async function ExpensesPage({
                       <Td align="right">
                         <form action={removeExpense}>
                           <input type="hidden" name="id" value={x.id} />
-                          <ConfirmSubmit size="sm" variant="ghost" confirm="Delete this expense?">
-                            Delete
+                          <ConfirmSubmit size="sm" variant="ghost" confirm={t("expenses.deleteConfirm")}>
+                            {t("common.delete")}
                           </ConfirmSubmit>
                         </form>
                       </Td>
@@ -143,15 +150,15 @@ export default async function ExpensesPage({
 
         <div className="space-y-4">
           <Card>
-            <CardHeader title="Record an expense" />
+            <CardHeader title={t("expenses.record")} />
             <ExpenseForm />
           </Card>
 
           <Card>
-            <CardHeader title="This month by category" />
+            <CardHeader title={t("expenses.byCategory")} />
             {breakdown.length === 0 ? (
               <p className="px-5 py-4 text-sm" style={{ color: "var(--text-muted)" }}>
-                Nothing recorded this month.
+                {t("expenses.nothingThisMonth")}
               </p>
             ) : (
               <dl className="divide-y">
@@ -160,7 +167,7 @@ export default async function ExpensesPage({
                   .map((b) => (
                     <div key={b.category} className="flex items-baseline justify-between gap-4 px-5 py-2.5">
                       <dt className="text-sm" style={{ color: "var(--text-muted)" }}>
-                        {EXPENSE_CATEGORY_LABEL[b.category as ExpenseCategory] ?? b.category}
+                        {categoryLabel(b.category)}
                         <span className="ml-1.5 text-xs">({b.count})</span>
                       </dt>
                       <dd className="text-base font-semibold tnum">{formatMoney(b.amountPaise)}</dd>
@@ -170,9 +177,8 @@ export default async function ExpensesPage({
             )}
           </Card>
 
-          <Note tone="brand" title="Approvals">
-            Expenses post straight to the ledger. Whether an approval step is needed
-            (scope section 5, item 10) is still open.
+          <Note tone="brand" title={t("expenses.approvalsTitle")}>
+            {t("expenses.approvalsBody")}
           </Note>
         </div>
       </div>

@@ -20,6 +20,9 @@ import {
 import { db } from "@/lib/db";
 import { formatDate, startOfMonth } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
+import { displayName } from "@/lib/display-name";
+import { LOCALE_TAG } from "@/lib/i18n";
+import { getTranslate } from "@/lib/locale";
 import { getSessionUser, requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Payments" };
@@ -29,7 +32,8 @@ export default async function PaymentsPage({
 }: {
   searchParams: Promise<{ q?: string; mode?: string }>;
 }) {
-  await requireStaff();
+  const [, t] = await Promise.all([requireStaff(), getTranslate()]);
+  const tag = LOCALE_TAG[t.locale];
   const session = await getSessionUser();
   const isAdmin = session?.role === "ADMIN";
   const { q = "", mode = "all" } = await searchParams;
@@ -51,7 +55,7 @@ export default async function PaymentsPage({
           : {}),
       },
       include: {
-        loan: { include: { customer: { select: { id: true, name: true } } } },
+        loan: { include: { customer: { select: { id: true, name: true, nameMr: true } } } },
         recordedBy: { select: { name: true } },
         installment: { select: { seq: true } },
       },
@@ -76,69 +80,69 @@ export default async function PaymentsPage({
   return (
     <>
       <PageHeader
-        title="Payments"
-        subtitle="Every receipt is entered by hand — there is no bank or gateway feed."
+        title={t("payments.title")}
+        subtitle={t("payments.sub")}
         actions={
           <LinkButton href="/payments/new" variant="primary">
-            Record payment
+            {t("dashboard.recordPayment")}
           </LinkButton>
         }
       />
 
       <section className="grid gap-4 sm:grid-cols-3">
         <StatTile
-          label="Collected this month"
+          label={t("payments.collectedMonth")}
           value={formatMoney(monthAgg._sum.amountPaise ?? 0)}
-          hint={`${monthAgg._count} receipt${monthAgg._count === 1 ? "" : "s"}`}
+          hint={t.plural(monthAgg._count, "payments.receipts.one", "payments.receipts.other")}
           tone="money"
         />
-        <StatTile label="In cash" value={formatMoney(cash)} tone="warn" />
-        <StatTile label="Online" value={formatMoney(online)} tone="brand" />
+        <StatTile label={t("payments.inCash")} value={formatMoney(cash)} tone="warn" />
+        <StatTile label={t("payments.online")} value={formatMoney(online)} tone="brand" />
       </section>
 
       <Card className="mt-4">
         <div className="flex flex-wrap items-center gap-3 border-b p-4">
-          <SearchBar placeholder="Search customer, loan code or reference…" />
+          <SearchBar placeholder={t("payments.search")} />
           <FilterTabs
             basePath="/payments"
             param="mode"
             value={mode}
             searchParams={{ q }}
             options={[
-              { value: "all", label: "All" },
-              { value: "CASH", label: "Cash" },
-              { value: "ONLINE", label: "Online" },
+              { value: "all", label: t("common.all") },
+              { value: "CASH", label: t("mode.CASH") },
+              { value: "ONLINE", label: t("mode.ONLINE") },
             ]}
           />
         </div>
 
         {payments.length === 0 ? (
           <EmptyState
-            title={q ? "No matching receipts" : "No payments recorded"}
-            description={q ? "Try another search." : "Record a collection to see it here."}
-            action={!q ? <LinkButton href="/payments/new" variant="primary">Record payment</LinkButton> : null}
+            title={q ? t("payments.noMatch") : t("payments.noneTitle")}
+            description={q ? t("payments.trySearch") : t("payments.noneBody")}
+            action={!q ? <LinkButton href="/payments/new" variant="primary">{t("dashboard.recordPayment")}</LinkButton> : null}
           />
         ) : (
           <Table>
             <thead>
               <tr>
-                <Th>Received</Th>
-                <Th>Customer</Th>
-                <Th>Loan</Th>
-                <Th align="right">Amount</Th>
-                <Th>Mode</Th>
-                <Th>Reference</Th>
-                <Th>Recorded by</Th>
-                {isAdmin ? <Th><span className="sr-only">Actions</span></Th> : null}
+                <Th>{t("th.received")}</Th>
+                <Th>{t("th.customer")}</Th>
+                <Th>{t("th.loan")}</Th>
+                <Th align="right">{t("th.amount")}</Th>
+                <Th>{t("th.mode")}</Th>
+                <Th>{t("th.reference")}</Th>
+                <Th>{t("th.recordedBy")}</Th>
+                {isAdmin ? <Th><span className="sr-only">{t("th.actions")}</span></Th> : null}
               </tr>
             </thead>
             <tbody>
               {payments.map((p) => (
                 <Tr key={p.id}>
-                  <Td>{formatDate(p.receivedOn)}</Td>
+                  <Td>{formatDate(p.receivedOn, tag)}</Td>
                   <Td>
                     <Link href={`/customers/${p.loan.customerId}`} className="font-medium hover:underline">
-                      {p.loan.customer.name}
+                      {displayName(p.loan.customer, t.locale)}
                     </Link>
                   </Td>
                   <Td>
@@ -147,7 +151,7 @@ export default async function PaymentsPage({
                     </Link>
                     {p.installment ? (
                       <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
-                        EMI {p.installment.seq}
+                        {t("emi.seq", { n: p.installment.seq })}
                       </span>
                     ) : null}
                   </Td>
@@ -169,9 +173,9 @@ export default async function PaymentsPage({
                         <ConfirmSubmit
                           size="sm"
                           variant="ghost"
-                          confirm={`Reverse this receipt of ${formatMoney(p.amountPaise)}?`}
+                          confirm={t("payments.reverseConfirm", { amount: formatMoney(p.amountPaise) })}
                         >
-                          Reverse
+                          {t("payments.reverse")}
                         </ConfirmSubmit>
                       </form>
                     </Td>

@@ -18,6 +18,9 @@ import {
 import { dueLabel, formatDate } from "@/lib/dates";
 import { formatMoney } from "@/lib/money";
 import { collectionQueue } from "@/lib/reports";
+import { displayName } from "@/lib/display-name";
+import { LOCALE_TAG } from "@/lib/i18n";
+import { getTranslate } from "@/lib/locale";
 import { requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Collections" };
@@ -27,7 +30,8 @@ export default async function CollectionsPage({
 }: {
   searchParams: Promise<{ days?: string }>;
 }) {
-  await requireStaff();
+  const [, t] = await Promise.all([requireStaff(), getTranslate()]);
+  const tag = LOCALE_TAG[t.locale];
   const { days = "7" } = await searchParams;
   const horizon = Number.isFinite(Number(days)) ? Math.max(0, Math.min(90, Number(days))) : 7;
 
@@ -42,8 +46,8 @@ export default async function CollectionsPage({
   return (
     <>
       <PageHeader
-        title="Collections"
-        subtitle="Everything overdue, plus what falls due next — worked oldest first."
+        title={t("collections.title")}
+        subtitle={t("collections.sub")}
         actions={
           <FilterTabs
             basePath="/collections"
@@ -51,9 +55,9 @@ export default async function CollectionsPage({
             value={String(horizon)}
             variant="bordered"
             options={[
-              { value: "0", label: "Overdue only" },
-              { value: "7", label: "7 days" },
-              { value: "30", label: "30 days" },
+              { value: "0", label: t("collections.overdueOnly") },
+              { value: "7", label: t("collections.days7") },
+              { value: "30", label: t("collections.days30") },
             ]}
           />
         }
@@ -61,38 +65,41 @@ export default async function CollectionsPage({
 
       <section className="grid gap-4 sm:grid-cols-3">
         <StatTile
-          label="Overdue"
+          label={t("tile.overdue")}
           value={formatMoney(overdueTotal)}
-          hint={`${overdue.length} EMI${overdue.length === 1 ? "" : "s"}`}
+          hint={t.plural(overdue.length, "emi.count.one", "emi.count.other")}
           tone={overdueTotal > 0 ? "risk" : "money"}
         />
         <StatTile
-          label={`Due in ${horizon} days`}
+          label={t("collections.dueInDays", { n: horizon })}
           value={formatMoney(upcomingTotal)}
-          hint={`${upcoming.length} EMI${upcoming.length === 1 ? "" : "s"}`}
+          hint={t.plural(upcoming.length, "emi.count.one", "emi.count.other")}
           tone="warn"
         />
-        <StatTile label="Total to collect" value={formatMoney(overdueTotal + upcomingTotal)} tone="brand" />
+        <StatTile label={t("collections.totalToCollect")} value={formatMoney(overdueTotal + upcomingTotal)} tone="brand" />
       </section>
 
       <Card className="mt-4">
         <CardHeader
-          title="Worklist"
-          subtitle={`${queue.length} installment${queue.length === 1 ? "" : "s"}`}
+          title={t("collections.worklist")}
+          subtitle={t.plural(queue.length, "installment.count.one", "installment.count.other")}
         />
         {queue.length === 0 ? (
-          <EmptyState title="All clear" description="Nothing is overdue and nothing falls due in this window." />
+          <EmptyState
+            title={t("collections.emptyTitle")}
+            description={t("collections.emptyBody")}
+          />
         ) : (
           <Table>
             <thead>
               <tr>
-                <Th>Customer</Th>
-                <Th>Contact</Th>
-                <Th>Loan</Th>
-                <Th>Due</Th>
-                <Th align="right">Amount</Th>
-                <Th align="right">Status</Th>
-                <Th><span className="sr-only">Actions</span></Th>
+                <Th>{t("th.customer")}</Th>
+                <Th>{t("th.contact")}</Th>
+                <Th>{t("th.loan")}</Th>
+                <Th>{t("th.due")}</Th>
+                <Th align="right">{t("th.amount")}</Th>
+                <Th align="right">{t("th.status")}</Th>
+                <Th><span className="sr-only">{t("th.actions")}</span></Th>
               </tr>
             </thead>
             <tbody>
@@ -100,7 +107,7 @@ export default async function CollectionsPage({
                 <Tr key={row.id}>
                   <Td>
                     <Link href={`/customers/${row.loan.customerId}`} className="font-medium hover:underline">
-                      {row.loan.customer.name}
+                      {displayName(row.loan.customer, t.locale)}
                     </Link>
                   </Td>
                   <Td>
@@ -116,16 +123,16 @@ export default async function CollectionsPage({
                       {row.loan.code}
                     </Link>
                     <span className="block text-xs" style={{ color: "var(--text-faint)" }}>
-                      EMI {row.seq}
+                      {t("emi.seq", { n: row.seq })}
                     </span>
                   </Td>
                   <Td>
-                    {formatDate(row.dueDate)}
+                    {formatDate(row.dueDate, tag)}
                     <span
                       className="block text-xs"
                       style={{ color: row.overdue ? "var(--tone-risk)" : "var(--text-faint)" }}
                     >
-                      {dueLabel(row.dueDate, today)}
+                      {dueLabel(row.dueDate, today, t)}
                     </span>
                   </Td>
                   <Td align="right" className="font-semibold">
@@ -136,7 +143,7 @@ export default async function CollectionsPage({
                   </Td>
                   <Td align="right">
                     <LinkButton href={`/payments/new?loanId=${row.loanId}`} size="sm">
-                      Collect
+                      {t("action.collect")}
                     </LinkButton>
                   </Td>
                 </Tr>
