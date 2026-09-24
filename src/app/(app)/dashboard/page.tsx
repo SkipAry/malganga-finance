@@ -19,6 +19,8 @@ import { db } from "@/lib/db";
 import { dueLabel, formatDate } from "@/lib/dates";
 import { formatMoney, formatMoneyCompact } from "@/lib/money";
 import { collectionQueue, monthlyTrend, portfolioSummary, type TrendPoint } from "@/lib/reports";
+import { LOCALE_TAG, type Translate } from "@/lib/i18n";
+import { getTranslate } from "@/lib/locale";
 import { requireStaff } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -28,8 +30,8 @@ export const metadata: Metadata = { title: "Dashboard" };
  * depend on reading three overlapping lines (and so the chart has a text
  * equivalent for screen readers).
  */
-function trendSummary(trend: TrendPoint[]): string {
-  if (trend.length < 2) return "Not enough history yet to show a trend.";
+function trendSummary(trend: TrendPoint[], t: Translate): string {
+  if (trend.length < 2) return t("trend.tooShort");
 
   const last = trend[trend.length - 1];
   const prev = trend[trend.length - 2];
@@ -38,20 +40,25 @@ function trendSummary(trend: TrendPoint[]): string {
 
   const movement =
     last.collected > prev.collected
-      ? `up from ${rupees(prev.collected)} in ${prev.label}`
+      ? t("trend.up", { amount: rupees(prev.collected), month: prev.label })
       : last.collected < prev.collected
-        ? `down from ${rupees(prev.collected)} in ${prev.label}`
-        : `level with ${prev.label}`;
+        ? t("trend.down", { amount: rupees(prev.collected), month: prev.label })
+        : t("trend.level", { month: prev.label });
 
-  return `${last.label}: ${rupees(last.collected)} collected (${movement}), ${rupees(
-    last.disbursed,
-  )} lent out and ${rupees(last.expenses)} of costs — a net ${
-    net >= 0 ? "inflow" : "outflow"
-  } of ${rupees(Math.abs(net))}.`;
+  return t("trend.summary", {
+    month: last.label,
+    collected: rupees(last.collected),
+    movement,
+    disbursed: rupees(last.disbursed),
+    expenses: rupees(last.expenses),
+    direction: net >= 0 ? t("trend.inflow") : t("trend.outflow"),
+    net: rupees(Math.abs(net)),
+  });
 }
 
 export default async function DashboardPage() {
-  const user = await requireStaff();
+  const [user, t] = await Promise.all([requireStaff(), getTranslate()]);
+  const tag = LOCALE_TAG[t.locale];
   const today = new Date();
 
   const [summary, trend, queue, recentPayments] = await Promise.all([
@@ -71,13 +78,13 @@ export default async function DashboardPage() {
   return (
     <>
       <PageHeader
-        title={`Good ${greeting()}, ${user.name.split(" ")[0]}`}
-        subtitle={`Position as on ${formatDate(today)}`}
+        title={t("dashboard.title", { greeting: t(greetingKey()), name: user.name.split(" ")[0] })}
+        subtitle={t("dashboard.asOn", { date: formatDate(today, tag) })}
         actions={
           <>
-            <LinkButton href="/payments/new">Record payment</LinkButton>
+            <LinkButton href="/payments/new">{t("dashboard.recordPayment")}</LinkButton>
             <LinkButton href="/loans/new" variant="primary">
-              New loan
+              {t("dashboard.newLoan")}
             </LinkButton>
           </>
         }
@@ -85,42 +92,42 @@ export default async function DashboardPage() {
 
       <section aria-labelledby="key-figures">
         <h2 id="key-figures" className="sr-only">
-          Key figures
+          {t("dashboard.keyFigures")}
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatTile
-            label="Outstanding"
+            label={t("tile.outstanding")}
             value={formatMoneyCompact(summary.outstandingPaise)}
-            status={`${summary.activeLoans} active loan${summary.activeLoans === 1 ? "" : "s"}`}
-            hint="Still to be collected across the whole book"
+            status={t.plural(summary.activeLoans, "tile.activeLoans.one", "tile.activeLoans.other")}
+            hint={t("tile.outstanding.hint")}
             tone="brand"
             href="/loans"
           />
           <StatTile
-            label="Overdue"
+            label={t("tile.overdue")}
             value={formatMoneyCompact(summary.overduePaise)}
             status={
               summary.overdueCount
-                ? `${summary.overdueCount} EMI${summary.overdueCount === 1 ? "" : "s"} need chasing`
-                : "Nothing past due"
+                ? t.plural(summary.overdueCount, "tile.overdue.one", "tile.overdue.other")
+                : t("tile.overdue.none")
             }
-            hint={summary.overdueCount ? "Past the due date and unpaid" : "Every EMI is on schedule"}
+            hint={summary.overdueCount ? t("tile.overdue.hint") : t("tile.overdue.hintNone")}
             tone={summary.overduePaise > 0 ? "risk" : "money"}
             href="/collections"
           />
           <StatTile
-            label="Due this week"
+            label={t("tile.dueWeek")}
             value={formatMoneyCompact(summary.dueThisWeekPaise)}
-            status={`${upcomingRows} EMI${upcomingRows === 1 ? "" : "s"} coming up`}
-            hint="Falls due within the next 7 days"
+            status={t.plural(upcomingRows, "tile.dueWeek.one", "tile.dueWeek.other")}
+            hint={t("tile.dueWeek.hint")}
             tone="warn"
             href="/collections"
           />
           <StatTile
-            label="Cash position"
+            label={t("tile.cash")}
             value={formatMoneyCompact(summary.cashInHandPaise)}
-            status={summary.cashInHandPaise >= 0 ? "In surplus" : "Overdrawn"}
-            hint="Investor funds held, after lending, payouts and costs"
+            status={summary.cashInHandPaise >= 0 ? t("tile.cash.surplus") : t("tile.cash.overdrawn")}
+            hint={t("tile.cash.hint")}
             tone={summary.cashInHandPaise >= 0 ? "money" : "risk"}
           />
         </div>
@@ -128,20 +135,20 @@ export default async function DashboardPage() {
 
       <section className="mt-4 grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Card>
-          <CardHeader title="Cash movement" subtitle={trendSummary(trend)} />
+          <CardHeader title={t("card.cashMovement")} subtitle={trendSummary(trend, t)} />
           <TrendChartLazy data={trend} />
         </Card>
 
         <Card>
-          <CardHeader title="Book summary" subtitle="Whole business, to date" />
+          <CardHeader title={t("card.bookSummary")} subtitle={t("card.bookSummary.sub")} />
           <dl className="divide-y">
             {[
-              ["Customers", String(summary.customers), false],
-              ["Principal deployed", formatMoney(summary.principalOutPaise), false],
-              ["Total collected", formatMoney(summary.collectedPaise), true],
-              ["Investor capital", formatMoney(summary.investorCapitalPaise), false],
-              ["Paid back to investors", formatMoney(summary.investorWithdrawnPaise), false],
-              ["Expenses to date", formatMoney(summary.expensesPaise), false],
+              [t("book.customers"), String(summary.customers), false],
+              [t("book.principal"), formatMoney(summary.principalOutPaise), false],
+              [t("book.collected"), formatMoney(summary.collectedPaise), true],
+              [t("book.investorCapital"), formatMoney(summary.investorCapitalPaise), false],
+              [t("book.paidBack"), formatMoney(summary.investorWithdrawnPaise), false],
+              [t("book.expenses"), formatMoney(summary.expensesPaise), false],
             ].map(([label, value, emphasis]) => (
               <div key={label as string} className="flex items-baseline justify-between gap-4 px-5 py-3">
                 <dt className="text-sm" style={{ color: "var(--text-muted)" }}>
@@ -162,29 +169,35 @@ export default async function DashboardPage() {
       <section className="mt-4 grid gap-4 xl:grid-cols-2">
         <Card>
           <CardHeader
-            title="Needs collection"
+            title={t("card.needsCollection")}
             subtitle={
               overdueRows.length
-                ? `${overdueRows.length} overdue, ${upcomingRows} due within 7 days`
-                : `${upcomingRows} due within 7 days, nothing overdue`
+                ? t("card.needsCollection.mixed", {
+                    overdue: overdueRows.length,
+                    upcoming: upcomingRows,
+                  })
+                : t("card.needsCollection.clean", { upcoming: upcomingRows })
             }
             action={
               <LinkButton href="/collections" size="sm">
-                View all
+                {t("action.viewAll")}
               </LinkButton>
             }
           />
           {queue.length === 0 ? (
-            <EmptyState title="Nothing to chase" description="No EMI is overdue or due this week." />
+            <EmptyState
+              title={t("card.needsCollection.emptyTitle")}
+              description={t("card.needsCollection.emptyBody")}
+            />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Customer</Th>
-                  <Th>Due</Th>
-                  <Th align="right">Amount</Th>
-                  <Th align="right">Status</Th>
-                  <Th><span className="sr-only">Actions</span></Th>
+                  <Th>{t("th.customer")}</Th>
+                  <Th>{t("th.due")}</Th>
+                  <Th align="right">{t("th.amount")}</Th>
+                  <Th align="right">{t("th.status")}</Th>
+                  <Th><span className="sr-only">{t("th.actions")}</span></Th>
                 </tr>
               </thead>
               <tbody>
@@ -199,12 +212,12 @@ export default async function DashboardPage() {
                       </span>
                     </Td>
                     <Td>
-                      <span className="block">{formatDate(row.dueDate)}</span>
+                      <span className="block">{formatDate(row.dueDate, tag)}</span>
                       <span
                         className="text-xs"
                         style={{ color: row.overdue ? "var(--tone-risk)" : "var(--text-faint)" }}
                       >
-                        {dueLabel(row.dueDate, today)}
+                        {dueLabel(row.dueDate, today, t)}
                       </span>
                     </Td>
                     <Td align="right" className="font-semibold">
@@ -215,7 +228,7 @@ export default async function DashboardPage() {
                     </Td>
                     <Td align="right">
                       <LinkButton href={`/payments/new?loanId=${row.loanId}`} size="sm">
-                        Collect
+                        {t("action.collect")}
                       </LinkButton>
                     </Td>
                   </Tr>
@@ -227,8 +240,8 @@ export default async function DashboardPage() {
 
         <Card>
           <CardHeader
-            title="Recent receipts"
-            subtitle="Last six payments entered"
+            title={t("card.recentReceipts")}
+            subtitle={t("card.recentReceipts.sub")}
             action={
               <LinkButton href="/payments" size="sm">
                 View all
@@ -237,17 +250,17 @@ export default async function DashboardPage() {
           />
           {recentPayments.length === 0 ? (
             <EmptyState
-              title="No receipts yet"
-              description="Payments recorded by staff will appear here."
+              title={t("card.recentReceipts.emptyTitle")}
+              description={t("card.recentReceipts.emptyBody")}
             />
           ) : (
             <Table>
               <thead>
                 <tr>
-                  <Th>Customer</Th>
-                  <Th>Received</Th>
-                  <Th align="right">Amount</Th>
-                  <Th align="right">Mode</Th>
+                  <Th>{t("th.customer")}</Th>
+                  <Th>{t("th.received")}</Th>
+                  <Th align="right">{t("th.amount")}</Th>
+                  <Th align="right">{t("th.mode")}</Th>
                 </tr>
               </thead>
               <tbody>
@@ -261,7 +274,7 @@ export default async function DashboardPage() {
                         {p.loan.code}
                       </span>
                     </Td>
-                    <Td>{formatDate(p.receivedOn)}</Td>
+                    <Td>{formatDate(p.receivedOn, tag)}</Td>
                     <Td align="right" className="font-semibold text-ontone-money">
                       {formatMoney(p.amountPaise)}
                     </Td>
@@ -279,9 +292,9 @@ export default async function DashboardPage() {
   );
 }
 
-function greeting(): string {
+function greetingKey(): "greeting.morning" | "greeting.afternoon" | "greeting.evening" {
   const h = new Date().getHours();
-  if (h < 12) return "morning";
-  if (h < 17) return "afternoon";
-  return "evening";
+  if (h < 12) return "greeting.morning";
+  if (h < 17) return "greeting.afternoon";
+  return "greeting.evening";
 }

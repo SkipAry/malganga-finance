@@ -1,3 +1,5 @@
+import type { Translate } from "./i18n";
+
 /** Date helpers. All dates are handled at local-midnight to keep due dates stable. */
 
 export function startOfDay(d: Date): Date {
@@ -37,20 +39,31 @@ export function startOfYear(d: Date): Date {
   return startOfDay(new Date(d.getFullYear(), 0, 1));
 }
 
-export function formatDate(d: Date | string | null | undefined): string {
+/**
+ * `locale` is a BCP-47 tag (see LOCALE_TAG in i18n.ts). Month names follow
+ * it; digits stay Latin because mr-IN would otherwise render Devanagari
+ * numerals in dates sitting beside Latin-digit money columns.
+ */
+export function formatDate(
+  d: Date | string | null | undefined,
+  locale = "en-IN",
+): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
-  return date.toLocaleDateString("en-IN", {
+  return date.toLocaleDateString(`${locale}-u-nu-latn`, {
     day: "2-digit",
     month: "short",
     year: "numeric",
   });
 }
 
-export function formatDateTime(d: Date | string | null | undefined): string {
+export function formatDateTime(
+  d: Date | string | null | undefined,
+  locale = "en-IN",
+): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
-  return `${formatDate(date)}, ${date.toLocaleTimeString("en-IN", {
+  return `${formatDate(date, locale)}, ${date.toLocaleTimeString(`${locale}-u-nu-latn`, {
     hour: "2-digit",
     minute: "2-digit",
   })}`;
@@ -70,9 +83,15 @@ export function daysBetween(a: Date, b: Date): number {
 }
 
 /** "3 days overdue" / "due in 2 days" / "due today" */
-export function dueLabel(dueDate: Date, today = new Date()): string {
+/** Pass `t` to translate; without it the English wording is used. */
+export function dueLabel(dueDate: Date, today = new Date(), t?: Translate): string {
   const d = daysBetween(today, dueDate);
-  if (d === 0) return "Due today";
-  if (d > 0) return `Due in ${d} day${d === 1 ? "" : "s"}`;
-  return `${-d} day${d === -1 ? "" : "s"} overdue`;
+  if (!t) {
+    if (d === 0) return "Due today";
+    if (d > 0) return `Due in ${d} day${d === 1 ? "" : "s"}`;
+    return `${-d} day${d === -1 ? "" : "s"} overdue`;
+  }
+  if (d === 0) return t("due.today");
+  if (d > 0) return t.plural(d, "due.inDays.one", "due.inDays.other");
+  return t.plural(-d, "due.lateDays.one", "due.lateDays.other");
 }

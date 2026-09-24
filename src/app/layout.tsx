@@ -2,6 +2,9 @@ import type { Metadata, Viewport } from "next";
 
 import "./globals.css";
 
+import { LOCALE_TAG } from "@/lib/i18n";
+import { getLocale } from "@/lib/locale";
+
 export const metadata: Metadata = {
   title: {
     default: "Malganga Finance",
@@ -22,9 +25,13 @@ export const viewport: Viewport = {
 /** Applies the stored theme before first paint so there is no flash. */
 const themeScript = `(function(){try{var t=localStorage.getItem('mg-theme');if(t==='dark'||t==='light'){document.documentElement.dataset.theme=t}}catch(e){}})()`;
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Marks the document's language so screen readers pronounce Devanagari as
+  // Marathi rather than reading it with English phonetics.
+  const locale = await getLocale();
+
   return (
-    <html lang="en-IN" suppressHydrationWarning>
+    <html lang={LOCALE_TAG[locale]} suppressHydrationWarning>
       <head>
         {/*
          * Google Sans, open-licensed (SIL OFL) since November 2025. Loaded from

@@ -7,9 +7,13 @@ import { usePathname } from "next/navigation";
 import { NavIcon } from "./nav-icon";
 import { navFor, type NavItem } from "./nav-items";
 import { cx } from "./ui/primitives";
-import { ROLE_LABEL, type Role } from "@/lib/enums";
+import { type Role } from "@/lib/enums";
+import { translator, type Locale, type MessageKey } from "@/lib/i18n";
+import { LanguageToggle } from "./language-toggle";
 
 type ShellUser = { name: string; email: string; role: Role };
+
+type T = ReturnType<typeof translator>;
 
 function groupBy(items: NavItem[]): Array<[string, NavItem[]]> {
   const map = new Map<string, NavItem[]>();
@@ -25,7 +29,7 @@ function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function Wordmark() {
+function Wordmark({ t }: { t: T }) {
   return (
     <Link href="/" className="flex items-center gap-2.5 px-2">
       <span
@@ -40,14 +44,14 @@ function Wordmark() {
           Malganga Finance
         </span>
         <span className="block text-2xs leading-tight" style={{ color: "var(--sidebar-text)" }}>
-          Loan management
+          {t("app.tagline")}
         </span>
       </span>
     </Link>
   );
 }
 
-function ThemeToggle() {
+function ThemeToggle({ t }: { t: T }) {
   const [theme, setTheme] = React.useState<"light" | "dark">("light");
 
   React.useEffect(() => {
@@ -84,8 +88,8 @@ function ThemeToggle() {
       type="button"
       onClick={toggle}
       className="tap-square grid h-9 w-9 place-items-center rounded-lg border transition-colors hover:bg-[var(--bg-sunken)]"
-      aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-      title={theme === "dark" ? "Light theme" : "Dark theme"}
+      aria-label={theme === "dark" ? t("app.themeToLight") : t("app.themeToDark")}
+      title={theme === "dark" ? t("app.themeLight") : t("app.themeDark")}
     >
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-[17px] w-[17px]">
         {theme === "dark" ? (
@@ -103,11 +107,14 @@ function ThemeToggle() {
 
 export function AppShell({
   user,
+  locale,
   children,
 }: {
   user: ShellUser;
+  locale: Locale;
   children: React.ReactNode;
 }) {
+  const t = translator(locale);
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const groups = groupBy(navFor(user.role));
@@ -123,7 +130,7 @@ export function AppShell({
             className="mb-1.5 px-3 text-2xs font-semibold uppercase tracking-[0.1em]"
             style={{ color: "var(--sidebar-text)", opacity: 0.6 }}
           >
-            {group}
+            {t(`nav.group.${group}` as MessageKey)}
           </p>
           <ul className="space-y-0.5">
             {items.map((item) => {
@@ -143,7 +150,7 @@ export function AppShell({
                     }}
                   >
                     <NavIcon name={item.icon} />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 </li>
               );
@@ -162,13 +169,13 @@ export function AppShell({
         style={{ background: "var(--sidebar)" }}
       >
         <div className="flex h-16 items-center border-b border-white/[0.06]">
-          <Wordmark />
+          <Wordmark t={t} />
         </div>
         {nav}
         <div className="border-t border-white/[0.06] px-4 py-3">
           <p className="truncate text-sm font-medium text-white">{user.name}</p>
           <p className="truncate text-xs" style={{ color: "var(--sidebar-text)" }}>
-            {ROLE_LABEL[user.role]}
+            {t(`role.${user.role}` as MessageKey)}
           </p>
         </div>
       </aside>
@@ -178,7 +185,7 @@ export function AppShell({
         <div className="no-print fixed inset-0 z-40 lg:hidden">
           <button
             className="absolute inset-0 bg-black/50"
-            aria-label="Close menu"
+            aria-label={t("app.closeMenu")}
             onClick={() => setOpen(false)}
           />
           <aside
@@ -186,7 +193,7 @@ export function AppShell({
             style={{ background: "var(--sidebar)" }}
           >
             <div className="flex h-16 items-center border-b border-white/[0.06]">
-              <Wordmark />
+              <Wordmark t={t} />
             </div>
             {nav}
           </aside>
@@ -202,7 +209,7 @@ export function AppShell({
             type="button"
             onClick={() => setOpen(true)}
             className="tap-square grid h-9 w-9 place-items-center rounded-lg border lg:hidden"
-            aria-label="Open menu"
+            aria-label={t("app.openMenu")}
           >
             <svg viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8" fill="none" className="h-[18px] w-[18px]">
               <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
@@ -211,7 +218,8 @@ export function AppShell({
 
           <div className="min-w-0 flex-1" />
 
-          <ThemeToggle />
+          <ThemeToggle t={t} />
+          <LanguageToggle current={locale} label={t("app.language")} />
 
           <div className="flex items-center gap-2.5 border-l pl-3">
             <span
@@ -224,7 +232,7 @@ export function AppShell({
             <div className="hidden min-w-0 sm:block">
               <p className="truncate text-sm font-medium leading-tight">{user.name}</p>
               <p className="truncate text-xs leading-tight" style={{ color: "var(--text-faint)" }}>
-                {ROLE_LABEL[user.role]}
+                {t(`role.${user.role}` as MessageKey)}
               </p>
             </div>
             <form action="/api/logout" method="post">
@@ -233,7 +241,7 @@ export function AppShell({
                 className="tap rounded-lg px-2.5 py-1.5 text-sm transition-colors hover:bg-[var(--bg-sunken)]"
                 style={{ color: "var(--text-muted)" }}
               >
-                Sign out
+                {t("app.signOut")}
               </button>
             </form>
           </div>
