@@ -59,10 +59,92 @@ const en = {
   "nav.reports": "Reports",
   "nav.users": "Users & roles",
 
-  /* ---------------------------------------------------------------- roles */
+
+  /* ------------------------------------------------------------ enum labels */
   "role.ADMIN": "Administrator",
-  "role.AGENT": "Agent",
+  "role.AGENT": "Collection Agent",
   "role.INVESTOR": "Investor",
+
+  "loanStatus.ACTIVE": "Active",
+  "loanStatus.CLOSED": "Closed",
+  "loanStatus.DEFAULTED": "Defaulted",
+
+  "installmentStatus.PENDING": "Pending",
+  "installmentStatus.PARTIAL": "Part paid",
+  "installmentStatus.PAID": "Paid",
+  "installmentStatus.WAIVED": "Waived",
+  "installmentStatus.overdue": "Overdue",
+  "installmentStatus.partialOverdue": "Part paid \u00b7 overdue",
+
+  "mode.CASH": "Cash",
+  "mode.ONLINE": "Online",
+
+  "investorType.INTERNAL": "Internal",
+  "investorType.EXTERNAL": "External",
+
+  "investorTxn.INVESTMENT": "Investment in",
+  "investorTxn.WITHDRAWAL": "Withdrawal",
+  "investorTxn.INTEREST_PAYOUT": "Interest payout",
+
+  "frequency.WEEKLY": "Weekly",
+  "frequency.MONTHLY": "Monthly",
+
+  "loanStructure.FLAT_UPFRONT": "Flat (first EMI upfront)",
+  "loanStructure.INTEREST_ONLY": "Interest only",
+  "loanStructure.INTEREST_PRINCIPAL": "Interest + Principal",
+
+  "expenseCategory.DAILY": "Daily expense",
+  "expenseCategory.TRANSPORT": "Transport",
+  "expenseCategory.MONTHLY": "Monthly expense",
+  "expenseCategory.ACCOUNTING": "Accounting",
+  "expenseCategory.MAINTENANCE": "Maintenance",
+
+  "documentKind.AADHAAR": "Aadhaar",
+  "documentKind.PAN": "PAN card",
+  "documentKind.VOTER_ID": "Voter ID",
+  "documentKind.DRIVING_LICENCE": "Driving licence",
+  "documentKind.PASSPORT": "Passport",
+  "documentKind.SHOP_ACT": "Shop Act licence",
+  "documentKind.PHOTO_CUSTOMER": "Customer photograph",
+  "documentKind.PHOTO_SHOP": "Shop photograph",
+  "documentKind.PHOTO_COLLATERAL": "Collateral photograph",
+  "documentKind.OTHER": "Other document",
+
+  "assetType.GOLD": "Gold / jewellery",
+  "assetType.VEHICLE": "Vehicle",
+  "assetType.PROPERTY": "Property",
+  "assetType.MACHINERY": "Machinery",
+  "assetType.STOCK": "Shop stock",
+  "assetType.OTHER": "Other",
+
+  "notificationKind.BEFORE_DUE": "Day-before reminder",
+  "notificationKind.ON_DUE": "Due-date reminder",
+  "notificationKind.OVERDUE": "Overdue reminder",
+
+  "notificationStatus.PENDING": "Queued",
+  "notificationStatus.SENT": "Sent",
+  "notificationStatus.FAILED": "Failed",
+  "notificationStatus.CANCELLED": "Cancelled",
+
+  "upfrontMode.NONE": "No upfront deduction",
+  "upfrontMode.EXTRA_CHARGE": "Deduct one EMI as an upfront charge",
+
+  /* -------------------------------------------------------- common actions */
+  "common.edit": "Edit",
+  "common.delete": "Delete",
+  "common.cancel": "Cancel",
+  "common.save": "Save",
+  "common.saving": "Saving\u2026",
+  "common.working": "Working\u2026",
+  "common.search": "Search",
+  "common.all": "All",
+  "common.new": "New",
+  "common.back": "Back",
+  "common.print": "Print",
+  "common.total": "Total",
+  "common.none": "None",
+  "common.yes": "Yes",
+  "common.no": "No",
 
   /* ------------------------------------------------------------- greeting */
   "greeting.morning": "Good morning",
@@ -174,8 +256,88 @@ const mr: Record<MessageKey, string> = {
   "nav.users": "वापरकर्ते व भूमिका",
 
   "role.ADMIN": "प्रशासक",
-  "role.AGENT": "एजंट",
+  "role.AGENT": "वसुली एजंट",
   "role.INVESTOR": "गुंतवणूकदार",
+
+  "loanStatus.ACTIVE": "चालू",
+  "loanStatus.CLOSED": "बंद",
+  "loanStatus.DEFAULTED": "थकबाकीदार",
+
+  "installmentStatus.PENDING": "बाकी",
+  "installmentStatus.PARTIAL": "अंशतः भरले",
+  "installmentStatus.PAID": "भरले",
+  "installmentStatus.WAIVED": "माफ",
+  "installmentStatus.overdue": "थकीत",
+  "installmentStatus.partialOverdue": "अंशतः भरले · थकीत",
+
+  "mode.CASH": "रोख",
+  "mode.ONLINE": "ऑनलाईन",
+
+  "investorType.INTERNAL": "अंतर्गत",
+  "investorType.EXTERNAL": "बाहेरील",
+
+  "investorTxn.INVESTMENT": "गुंतवणूक",
+  "investorTxn.WITHDRAWAL": "परत काढले",
+  "investorTxn.INTEREST_PAYOUT": "व्याज परतावा",
+
+  "frequency.WEEKLY": "साप्ताहिक",
+  "frequency.MONTHLY": "मासिक",
+
+  "loanStructure.FLAT_UPFRONT": "सपाट (पहिला हप्ता आगाउ)",
+  "loanStructure.INTEREST_ONLY": "फक्त व्याज",
+  "loanStructure.INTEREST_PRINCIPAL": "व्याज + मुद्दल",
+
+  "expenseCategory.DAILY": "दैनंदिन खर्च",
+  "expenseCategory.TRANSPORT": "प्रवास",
+  "expenseCategory.MONTHLY": "मासिक खर्च",
+  "expenseCategory.ACCOUNTING": "लेखा",
+  "expenseCategory.MAINTENANCE": "देखभाल",
+
+  "documentKind.AADHAAR": "आधार",
+  "documentKind.PAN": "पॅन कार्ड",
+  "documentKind.VOTER_ID": "मतदार ओळखपत्र",
+  "documentKind.DRIVING_LICENCE": "वाहन परवाना",
+  "documentKind.PASSPORT": "पासपोर्ट",
+  "documentKind.SHOP_ACT": "शॉप অॅक्ट परवाना",
+  "documentKind.PHOTO_CUSTOMER": "ग्राहक फोटो",
+  "documentKind.PHOTO_SHOP": "दुकान फोटो",
+  "documentKind.PHOTO_COLLATERAL": "तारण फोटो",
+  "documentKind.OTHER": "इतर कागदपत्र",
+
+  "assetType.GOLD": "सोने / दागिने",
+  "assetType.VEHICLE": "वाहन",
+  "assetType.PROPERTY": "मिळकत",
+  "assetType.MACHINERY": "यंत्रसामग्री",
+  "assetType.STOCK": "दुकानातील माल",
+  "assetType.OTHER": "इतर",
+
+  "notificationKind.BEFORE_DUE": "एक दिवस आधीचे स्मरणपत्र",
+  "notificationKind.ON_DUE": "देय दिवशाचे स्मरणपत्र",
+  "notificationKind.OVERDUE": "थकीत स्मरणपत्र",
+
+  "notificationStatus.PENDING": "रांगेत",
+  "notificationStatus.SENT": "पाठवले",
+  "notificationStatus.FAILED": "अयशस्वी",
+  "notificationStatus.CANCELLED": "रद्द",
+
+  "upfrontMode.NONE": "आगाउ कपात नाही",
+  "upfrontMode.EXTRA_CHARGE": "एक हप्ता आगाउ शुल्क म्हणून कपात",
+
+  "common.edit": "संपादन",
+  "common.delete": "हटवा",
+  "common.cancel": "रद्द करा",
+  "common.save": "जतन करा",
+  "common.saving": "जतन होत आहे…",
+  "common.working": "सुरू आहे…",
+  "common.search": "शोधा",
+  "common.all": "सर्व",
+  "common.new": "नवीन",
+  "common.back": "मागे",
+  "common.print": "प्रिंट",
+  "common.total": "एकूण",
+  "common.none": "काही नाही",
+  "common.yes": "होय",
+  "common.no": "नाही",
 
   "greeting.morning": "सुप्रभात",
   "greeting.afternoon": "शुभ दुपार",
